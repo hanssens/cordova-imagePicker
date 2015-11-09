@@ -205,7 +205,10 @@ typedef enum : NSUInteger {
 //Optional implementation:
 -(void)assetsPickerControllerDidCancel:(GMImagePickerController *)picker
 {
-    NSLog(@"GMImagePicker: User pressed cancel button");
+    [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:[[NSMutableArray alloc] init]];;
+    [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
+    NSLog(@"GMImagePicker: User pressed cancel button, no photos selected");
 }
 
 

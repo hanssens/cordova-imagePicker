@@ -54,6 +54,8 @@ static CGSize const kPopoverContentSize = {480, 720};
  */
 @property (nonatomic) NSString* customNavigationBarPrompt;
 
+@property (nonatomic) NSInteger maxNumOfAllowedSelectedImages;
+
 /**
  *  Determines whether or not a toolbar with info about user selection is shown.
  *  The InfoToolbar is visible by default.

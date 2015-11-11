@@ -570,6 +570,11 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didSelectAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didSelectAsset:asset];
+
+    if (self.picker.maxNumOfAllowedSelectedImages == 1 && self.picker.selectedAssets.count == 1) {
+        // go ahead and finish image selection
+        [self.picker finishPickingAssets:self.picker];
+    }
 }
 
 - (BOOL)collectionView:(UICollectionView *)collectionView shouldDeselectItemAtIndexPath:(NSIndexPath *)indexPath

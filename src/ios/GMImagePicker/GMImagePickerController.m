@@ -94,7 +94,7 @@
     [self.selectedAssets insertObject:asset atIndex:self.selectedAssets.count];
     [self updateDoneButton];
 
-    if (self.maxNumOfAllowedSelectedImages == 1) {
+    if (self.maxNumOfAllowedSelectedImages == 1 && self.selectedAssets.count == 1) {
         // go ahead and finish image selection
         [self finishPickingAssets:self];
     } else if(self.displaySelectionInfoToolbar) {

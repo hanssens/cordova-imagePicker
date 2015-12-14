@@ -131,7 +131,7 @@ static UIColor *disabledColor;
         
         self.circularProgressView = [[MRCircularProgressView alloc] initWithFrame:CGRectMake(self.bounds.size.width/3, self.bounds.size.height/3, self.bounds.size.width/3, self.bounds.size.height/3)];
         [self.circularProgressView.stopButton addTarget:self action:@selector(onCircularProgressViewTouchUpInside:) forControlEvents:UIControlEventTouchUpInside];
-        //[self.circularProgressView setHidden:true];
+        [self.circularProgressView setHidden:true];
         [self addSubview:self.circularProgressView];
         
         
@@ -150,7 +150,7 @@ static UIColor *disabledColor;
 
 -(void)show_progress{
     // TODO remove this hack when reduced loading time performance
-    cell.selected = YES; // photo is selected (but not fully fetched)
+    self.selected = YES; // photo is selected (but not fully fetched)
 //    [self.circularProgressView setHidden:false];
 }
 

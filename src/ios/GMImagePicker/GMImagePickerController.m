@@ -188,7 +188,8 @@
     }
     else if (nImages==1)
     {
-        return NSLocalizedStringFromTable(@"picker.selection.single-photo", @"GMImagePicker", @"1/%@ Photo Selected", @(self.maxNumOfAllowedSelectedImages));
+        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.single-photo", @"GMImagePicker", @"1/%@ Photo Selected"), @(self.maxNumOfAllowedSelectedImages)];
+
     }
     else if (nVideos>1)
     {

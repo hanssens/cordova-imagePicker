@@ -149,15 +149,17 @@ static UIColor *disabledColor;
 }
 
 -(void)show_progress{
-    [self.circularProgressView setHidden:false];
+    // TODO remove this hack when reduced loading time performance
+    cell.selected = YES; // photo is selected (but not fully fetched)
+//    [self.circularProgressView setHidden:false];
 }
 
 -(void)hide_progress{
-    [self.circularProgressView setHidden:true];
+//    [self.circularProgressView setHidden:true];
 }
 
 -(void)set_progress:(float)value animated:(BOOL)animated{
-    [self.circularProgressView setProgress:value animated:animated];
+//    [self.circularProgressView setProgress:value animated:animated];
 }
 
 -(void)show_fetching{

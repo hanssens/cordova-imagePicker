@@ -184,7 +184,7 @@
     }
     else if (nImages>1)
     {
-        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-photos", @"GMImagePicker", @"%@/%@ Photos Selected"), @(nImages), self.maxNumOfAllowedSelectedImages];
+        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-photos", @"GMImagePicker", @"%@ Photos Selected"), @(nImages)];
     }
     else if (nImages==1)
     {

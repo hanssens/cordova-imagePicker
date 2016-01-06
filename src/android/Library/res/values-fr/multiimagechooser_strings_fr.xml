@@ -6,6 +6,6 @@
     <string name="discard">Annuler</string>
     <string name="done">OK</string>
     <string name="fb_app_id">Facebook app id</string>
-	<string name="fb_app_name">Facebook nom de l'application</string>
-	<string name="app_name">Nom de l'application</string>
+	<string name="fb_app_name">Facebook nom de l application</string>
+	<string name="app_name">Nom de l application</string>
 </resources>

@@ -4,4 +4,9 @@
     <string name="free_version_label">무료 버전 - 남은 이미지: %d</string>
     <string name="error_database">이미지 데이터베이스를 여는 데 오류가 발생했습니다. 문제를 보고하세요.</string>
     <string name="requesting_thumbnails">썸네일 요청 중. 기다려주세요</string>
+    <string name="discard">취소</string>
+    <string name="done">그래</string>
+    <string name="fb_app_id">페이스 북의 응용 프로그램 ID</string>
+	<string name="fb_app_name">페이스 북 앱 이름</string>
+	<string name="app_name">앱 이름</string>
 </resources>

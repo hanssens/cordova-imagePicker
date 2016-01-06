@@ -3,4 +3,9 @@
     <string name="free_version_label">"La version gratuite - gauche Images:%d"</string>
     <string name="error_database">"Il y avait une erreur d'ouvrir la base de données images. S'il vous plaît signaler le problème."</string>
     <string name="requesting_thumbnails">"Demande de vignettes, s'il vous plaît soyez patient"</string>
+    <string name="discard">Annuler</string>
+    <string name="done">OK</string>
+    <string name="fb_app_id">Facebook app id</string>
+	<string name="fb_app_name">Facebook nom de l'application</string>
+	<string name="app_name">Nom de l'application</string>
 </resources>

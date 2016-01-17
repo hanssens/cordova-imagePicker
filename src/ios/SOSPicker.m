@@ -138,33 +138,27 @@ typedef enum : NSUInteger {
 
     NSLog(@"GMImagePicker: User finished picking assets. Number of selected items is: %lu", (unsigned long)fetchArray.count);
 
-    NSMutableArray * result_all = [[NSMutableArray alloc] init];
-    CGSize targetSize = CGSizeMake(self.width, self.height);
-    NSFileManager* fileMgr = [[NSFileManager alloc] init];
-    NSString* docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
-
-    NSError* err = nil;
-    int i = 1;
-    NSString* filePath;
-    CDVPluginResult* result = nil;
-
-
-    PHImageRequestOptions *requestOptions = [[PHImageRequestOptions alloc] init];
-    requestOptions.resizeMode   = PHImageRequestOptionsResizeModeExact;
-    requestOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
-
-    // this one is key
-    requestOptions.synchronous = true;
-
-    PHImageManager *manager = [PHImageManager defaultManager];
-    NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
-
-    // assets contains PHAsset objects.
-    __block UIImage *ima;
-
     [MBProgressHUD showHUDAddedTo:picker.view animated:YES];
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         // Do something...
+
+        NSMutableArray * result_all = [[NSMutableArray alloc] init];
+        CGSize targetSize = CGSizeMake(self.width, self.height);
+        CDVPluginResult* result = nil;
+
+
+        PHImageRequestOptions *requestOptions = [[PHImageRequestOptions alloc] init];
+        requestOptions.resizeMode   = PHImageRequestOptionsResizeModeExact;
+        requestOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+
+        // this one is key
+        requestOptions.synchronous = true;
+
+        PHImageManager *manager = [PHImageManager defaultManager];
+        NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
+
+        // assets contains PHAsset objects.
+        __block UIImage *ima;
 
         for (PHAsset *asset in fetchArray) {
           // Do something with the asset
@@ -181,37 +175,15 @@ typedef enum : NSUInteger {
                                   // no scaling required
                                   if (self.outputType == BASE64_STRING){
                                       [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                                  } else {
-                                      // if (self.quality == 100) {
-                                      //     // no scaling, no downsampling, this is the fastest option
-                                      //     [result_all addObject:filePath];
-                                      // } else {
-                                      //     // resample first
-                                      //     UIImage* image = [UIImage imageNamed:filePath];
-                                      //     data = UIImageJPEGRepresentation(image, self.quality/100.0f);
-                                      //     if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-                                      //         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-                                      //         break;
-                                      //     } else {
-                                      //         [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
-                                      //     }
-                                      // }
                                   }
                               } else {
                                   // scale
                                   UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
                                   data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
 
-                                  // if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-                                  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-                                  //     break;
-                                  // } else {
-                                      if(self.outputType == BASE64_STRING){
-                                          [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                                      // } else {
-                                      //     [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
-                                      }
-                                  // }
+                                  if (self.outputType == BASE64_STRING){
+                                      [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                                  }
                               }
                           }];
 

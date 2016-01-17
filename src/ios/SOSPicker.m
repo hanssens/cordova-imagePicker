@@ -226,7 +226,7 @@ typedef enum : NSUInteger {
         [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
 
         dispatch_async(dispatch_get_main_queue(), ^{
-            [MBProgressHUD hideHUDForView:self.view animated:YES];
+            [MBProgressHUD hideHUDForView:picker.view animated:YES];
         });
     });
 

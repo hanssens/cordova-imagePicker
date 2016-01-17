@@ -197,7 +197,7 @@ typedef enum : NSUInteger {
                                   // } else {
                                   //     [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
                                   }
-                              }
+                              // }
                           }
                       }];
 

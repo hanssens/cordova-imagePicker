@@ -10,7 +10,6 @@
 
 
 #import "GMImagePickerController.h"
-#import "GMFetchItem.h"
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 
@@ -148,11 +147,12 @@ typedef enum : NSUInteger {
     NSString* filePath;
     CDVPluginResult* result = nil;
 
-    for (GMFetchItem *item in fetchArray) {
+    for (PHAsset *item in fetchArray) {
+    // for (GMFetchItem *item in fetchArray) {
 
-        if ( !item.image_fullsize ) {
-            continue;
-        }
+        // if ( !item.image_fullsize ) {
+        //     continue;
+        // }
 
         do {
             filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, i++, @"jpg"];
@@ -162,15 +162,15 @@ typedef enum : NSUInteger {
         if (self.width == 0 && self.height == 0) {
             // no scaling required
             if (self.outputType == BASE64_STRING){
-                UIImage* image = [UIImage imageNamed:item.image_fullsize];
+                UIImage* image = [UIImage imageNamed:filePath];
                 [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
             } else {
                 if (self.quality == 100) {
                     // no scaling, no downsampling, this is the fastest option
-                    [result_all addObject:item.image_fullsize];
+                    [result_all addObject:filePath];
                 } else {
                     // resample first
-                    UIImage* image = [UIImage imageNamed:item.image_fullsize];
+                    UIImage* image = [UIImage imageNamed:filePath];
                     data = UIImageJPEGRepresentation(image, self.quality/100.0f);
                     if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
                         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
@@ -182,7 +182,7 @@ typedef enum : NSUInteger {
             }
         } else {
             // scale
-            UIImage* image = [UIImage imageNamed:item.image_fullsize];
+            UIImage* image = [UIImage imageNamed:filePath];
             UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
             data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
 

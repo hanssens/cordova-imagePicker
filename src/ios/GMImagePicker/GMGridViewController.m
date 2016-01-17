@@ -12,9 +12,6 @@
 #import "GMGridViewCell.h"
 #import "GMPHAsset.h"
 
-//#import "PSYBlockTimer.h"
-#import "GMFetchItem.h"
-
 
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
@@ -74,13 +71,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
     UICollectionViewFlowLayout *portraitLayout;
     UICollectionViewFlowLayout *landscapeLayout;
 
-    NSFileManager* fileMgr;
-    NSString* docsPath;
-    int docCount;
-    int doc_thumbCount;
 }
 
-@synthesize dic_asset_fetches;
 
 -(id)initWithPicker:(GMImagePickerController *)picker
 {
@@ -123,13 +115,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 
         self.preferredContentSize = kPopoverContentSize;
     }
-
-    ///
-    fileMgr = [[NSFileManager alloc] init];
-    //dic_asset_fetches = [[NSMutableDictionary alloc] init];
-    docsPath = [NSTemporaryDirectory()stringByStandardizingPath];
-    docCount = 0;
-    doc_thumbCount = 0;
 
     return self;
 }
@@ -231,7 +216,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                                         target:self.picker
                                         action:@selector(finishPickingAssets:)];
 
-        self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
+        //self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
+        self.navigationItem.rightBarButtonItem.enabled = (self.picker.autoDisableDoneButton ? self.picker.selectedAssets.count > 0 : TRUE);
     }
 }
 
@@ -313,56 +299,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
     cell.tag = currentTag;
 
     PHAsset *asset = self.assetsFetchResults[indexPath.item];
-    [cell bind:asset];
-
-    //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[NSNumber numberWithLong:indexPath.item] ];
-    GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset ];
-    if ( fetch_item == nil ) {
-        fetch_item = [[GMFetchItem alloc] init];
-        //[ dic_asset_fetches setObject:fetch_item forKey:[NSNumber numberWithLong:indexPath.item] ];
-        [ dic_asset_fetches setObject:fetch_item forKey:asset ];
-    }
-
-    //Optional protocol to determine if some kind of assets can't be selected (pej long videos, etc...)
-    if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:shouldEnableAsset:)])
-    {
-        cell.enabled = [self.picker.delegate assetsPickerController:self.picker shouldEnableAsset:asset];
-    }
-    else
-    {
-        cell.enabled = YES;
-    }
-
-    // Setting `selected` property blocks further deselection. Have to call selectItemAtIndexPath too. ( ref: http://stackoverflow.com/a/17812116/1648333 )
-    if ([self.picker.selectedAssets containsObject:asset])
-    {
-        cell.selected = YES;
-        [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
-    }
-    else
-    {
-        cell.selected = NO;
-    }
-
-    [cell set_progress:fetch_item.percent animated:false];
-
-    if ( fetch_item.be_finished ) {
-        [ cell hide_progress ];
-    }
-    else if ( fetch_item.be_progressed ) {
-        [ cell show_progress ];
-        [ cell set_progress:fetch_item.percent animated:false];
-    }else{
-        [ cell hide_progress ];
-    }
-
-    if ( fetch_item.be_saving_img ) {
-        [ cell show_fetching ];
-    }else{
-        [ cell hide_fetching ];
-    }
-
-    //NSLog( @" cell : %ld ", (long)indexPath.item );
 
     /*if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
@@ -393,40 +329,31 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                                           [cell.imageView setImage:result];
                                       }
 
-                                      if ( fetch_item.be_saving_img_thumb==false && fetch_item.image_thumb == nil && result!= nil ) {
-
-                                          fetch_item.be_saving_img_thumb = true;
-
-                                          NSString * filePath;
-                                          do {
-                                              filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_THUMB_PREFIX, doc_thumbCount++, @"jpg"];
-                                          } while ([fileMgr fileExistsAtPath:filePath]);
-
-                                          dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-
-                                              fetch_item.be_saving_img_thumb = false;
-
-                                              // TODO pass in quality
-                                              if ( ![ UIImageJPEGRepresentation(result, 1.0f ) writeToFile:filePath atomically:YES ] ) {
-                                                  return;
-                                              }
-
-                                              fetch_item.image_thumb = filePath;
-
-                                          });
-                                      }
-
-                                      /*GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-
-                                      if ( cell ) {
-                                          [cell.imageView setImage:result];
-                                      }
-                                      NSLog( @"%d", indexPath.item );*/
-
                                   }];
     }
 
+    [cell bind:asset];
 
+    //Optional protocol to determine if some kind of assets can't be selected (pej long videos, etc...)
+    if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:shouldEnableAsset:)])
+    {
+        cell.enabled = [self.picker.delegate assetsPickerController:self.picker shouldEnableAsset:asset];
+    }
+    else
+    {
+        cell.enabled = YES;
+    }
+
+    // Setting `selected` property blocks further deselection. Have to call selectItemAtIndexPath too. ( ref: http://stackoverflow.com/a/17812116/1648333 )
+    if ([self.picker.selectedAssets containsObject:asset])
+    {
+        cell.selected = YES;
+        [collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone];
+    }
+    else
+    {
+        cell.selected = NO;
+    }
 
     return cell;
 }
@@ -451,107 +378,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
         return NO;
     }
     PHAsset *asset = self.assetsFetchResults[indexPath.item];
-    //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
-    GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
 
     GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-
-    if ( cell == nil || fetch_item==nil || fetch_item.be_progressed ) {
-        return NO;
-    }
-
-    if ( fetch_item.be_saving_img == false && fetch_item.image_fullsize == nil  ) {
-
-        fetch_item.be_progressed = true;
-        [ cell show_progress ];
-
-        PHImageRequestOptions *ph_options = [[PHImageRequestOptions alloc] init];
-
-        [ ph_options setNetworkAccessAllowed:YES];
-
-        // @BVL Set Deliverymode, in order to return highest quality
-		[ ph_options setDeliveryMode: PHImageRequestOptionsDeliveryModeHighQualityFormat ]; // Best Quality
-
-        [ ph_options setProgressHandler:^(double progress, NSError *error, BOOL *stop, NSDictionary *info) {
-
-            fetch_item.percent = progress;
-
-            GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-
-            if ( cell ) {
-                [ cell set_progress:progress animated:false];
-            }
-
-        }];
-
-
-
-        [ self.imageManager requestImageForAsset:asset targetSize:PHImageManagerMaximumSize contentMode:PHImageContentModeDefault options:ph_options resultHandler:^(UIImage *result, NSDictionary *info) {
-
-            //dispatch_async(dispatch_get_main_queue(), ^{
-
-            GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-
-            if ( cell ) {
-                [cell hide_progress];
-                [cell show_fetching];
-            }
-
-            fetch_item.be_progressed = false;
-            fetch_item.be_finished = true;
-
-            //asset.image_fullsize = result;
-
-            NSString * filePath;
-            do {
-                filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, docCount++, @"jpg"];
-            } while ([fileMgr fileExistsAtPath:filePath]);
-
-            fetch_item.be_saving_img = true;
-
-            dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-
-
-                // @BVL: Added orientation-fix to correctly display the returned result
-
-//              if ( ![ UIImageJPEGRepresentation(result, 1.0f ) writeToFile:filePath atomically:YES ] ) {
-//                  return;
-//              }
-
-                NSLog(@"original orientation: %ld",(UIImageOrientation)result.imageOrientation);
-
-                UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
-
-          		NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
-
-                if ( ![ UIImageJPEGRepresentation(imageToDisplay, 1.0f ) writeToFile:filePath atomically:YES ] ) {
-                    return;
-                }
-
-                fetch_item.image_fullsize = filePath;
-                fetch_item.be_saving_img = false;
-
-                dispatch_async(dispatch_get_main_queue(), ^{
-
-                    GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-
-                    if ( cell ) {
-                        [cell hide_fetching];
-                    }
-
-                    //Your main thread code goes in here
-                    [ collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone ];
-                    [ self collectionView:collectionView didSelectItemAtIndexPath:indexPath ];
-                });
-
-            });
-            //});
-
-        }];
-
-
-        return NO;
-    }
 
     if (!cell.isEnabled)
         return NO;
@@ -564,11 +392,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
 {
     PHAsset *asset = self.assetsFetchResults[indexPath.item];
-    //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
-    GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
 
     [self.picker selectAsset:asset];
-    [self.picker selectFetchItem:fetch_item];
 
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didSelectAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didSelectAsset:asset];
@@ -592,11 +417,8 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 - (void)collectionView:(UICollectionView *)collectionView didDeselectItemAtIndexPath:(NSIndexPath *)indexPath
 {
     PHAsset *asset = self.assetsFetchResults[indexPath.item];
-    //GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:[ NSNumber numberWithLong:indexPath.item ]];
-    GMFetchItem * fetch_item = [dic_asset_fetches objectForKey:asset];
 
     [self.picker deselectAsset:asset];
-    [self.picker deselectFetchItem:fetch_item];
 
     if ([self.picker.delegate respondsToSelector:@selector(assetsPickerController:didDeselectAsset:)])
         [self.picker.delegate assetsPickerController:self.picker didDeselectAsset:asset];
@@ -652,8 +474,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 
             // get the new fetch result
             self.assetsFetchResults = [collectionChanges fetchResultAfterChanges];
-
-            //NSLog( @"reset all" );
 
             UICollectionView *collectionView = self.collectionView;
 

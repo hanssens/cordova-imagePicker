@@ -170,7 +170,8 @@ typedef enum : NSUInteger {
                             options:requestOptions
                       resultHandler:^void(UIImage *image, NSDictionary *info) {
                           ima = image;
-
+                          
+                          NSData* data = nil;
                           if (self.width == 0 && self.height == 0) {
                               // no scaling required
                               if (self.outputType == BASE64_STRING){

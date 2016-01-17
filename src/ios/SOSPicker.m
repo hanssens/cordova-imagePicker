@@ -11,6 +11,7 @@
 
 #import "GMImagePickerController.h"
 #import "MBProgressHUD.h"
+#import "UIImage+fixOrientation.m"
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 
@@ -186,7 +187,7 @@ typedef enum : NSUInteger {
                               // }
 
                               if (self.outputType == BASE64_STRING){
-                                  [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                                  [result_all addObject:[UIImageJPEGRepresentation(image.fixOrientation, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
                               }
                           }];
 

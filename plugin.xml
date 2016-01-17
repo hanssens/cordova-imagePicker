@@ -5,16 +5,16 @@
   version="2.0.0">
 
 	<name>ImagePicker</name>
-	 
+
 	<description>
 		This plugin allows selection of multiple images from the camera roll / gallery in a phonegap app
 	</description>
-	
+
 	<license>MIT</license>
 
 	<engines>
 		<engine name="cordova" version=">=3.5.0" />
-	</engines>  
+	</engines>
 
 	<js-module src="www/imagepicker.js" name="ImagePicker">
 		<clobbers target="plugins.imagePicker" />
@@ -30,16 +30,19 @@
 
 		<header-file src="src/ios/SOSPicker.h" />
 		<source-file src="src/ios/SOSPicker.m" />
-        
+
+    <header-file src="src/ios/MBProgressHUD.h" />
+		<source-file src="src/ios/MBProgressHUD.m" />
+
 		<header-file src="src/ios/GMImagePicker/UIImage+fixOrientation.h" />
 		<source-file src="src/ios/GMImagePicker/UIImage+fixOrientation.m" />
-        
+
 		<header-file src="src/ios/GMImagePicker/GMAlbumsViewCell.h" />
 		<source-file src="src/ios/GMImagePicker/GMAlbumsViewCell.m" />
 
 		<header-file src="src/ios/GMImagePicker/GMAlbumsViewController.h" />
 		<source-file src="src/ios/GMImagePicker/GMAlbumsViewController.m" />
-		
+
 		<header-file src="src/ios/GMImagePicker/GMGridViewCell.h" />
 		<source-file src="src/ios/GMImagePicker/GMGridViewCell.m" />
 
@@ -79,7 +82,7 @@
 		<!-- AF Networking -->
 		<source-file src="src/ios/GMImagePicker/AFNetworking/LICENSE" target-dir="resources/AFNetworking" />
 		<source-file src="src/ios/GMImagePicker/AFNetworking/README.md" target-dir="resources/AFNetworking" />
-		
+
 		<header-file src="src/ios/GMImagePicker/AFNetworking/AFNetworking/AFHTTPRequestOperation.h"  target-dir="AFNetworking" />
 		<source-file src="src/ios/GMImagePicker/AFNetworking/AFNetworking/AFHTTPRequestOperation.m" target-dir="AFNetworking"/>
 
@@ -186,7 +189,7 @@
 
 		<header-file src="src/ios/GMImagePicker/mrprogress/Utils/MRWeakProxy.h" target-dir="mrprogress" />
 		<source-file src="src/ios/GMImagePicker/mrprogress/Utils/MRWeakProxy.m" target-dir="mrprogress" />
-        
+
 		<framework src="Accelerate.framework" />
 		<framework src="Security.framework" />
 		<framework src="Photos.framework" />
@@ -202,19 +205,19 @@
 				<param name="android-package" value="com.synconset.ImagePicker"/>
 			</feature>
 		</config-file>
-		
+
 		<config-file target="AndroidManifest.xml" parent="/manifest/application">
 		    <activity android:label="@string/multi_app_name" android:name="com.synconset.MultiImageChooserActivity" android:theme="@android:style/Theme.Holo.Light">
             </activity>
 		</config-file>
-		
+
 		<config-file target="AndroidManifest.xml" parent="/manifest">
 		    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 		</config-file>
 
 		<source-file src="src/android/com/synconset/ImagePicker/ImagePicker.java" target-dir="src/com/synconset" />
 		<source-file src="src/android/com/synconset/ImagePicker/FakeR.java" target-dir="src/com/synconset" />
-		
+
 		<source-file src="src/android/Library/src/ImageFetcher.java" target-dir="src/com/synconset"/>
 		<source-file src="src/android/Library/src/MultiImageChooserActivity.java" target-dir="src/com/synconset"/>
 
@@ -238,7 +241,7 @@
 		<source-file src="src/android/Library/res/layout/multiselectorgrid.xml" target-dir="res/layout"/>
 		<source-file src="src/android/Library/res/values/multiimagechooser_strings_en.xml" target-dir="res/values"/>
 		<source-file src="src/android/Library/res/values/themes.xml" target-dir="res/values"/>
-		
+
 		<source-file src="src/android/Library/res/values-de/multiimagechooser_strings_de.xml" target-dir="res/values-de"/>
 		<source-file src="src/android/Library/res/values-es/multiimagechooser_strings_es.xml" target-dir="res/values-es"/>
 		<source-file src="src/android/Library/res/values-fr/multiimagechooser_strings_fr.xml" target-dir="res/values-fr"/>

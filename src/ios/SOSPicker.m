@@ -10,6 +10,7 @@
 
 
 #import "GMImagePickerController.h"
+#import "MBProgressHUD.h"
 
 #define CDV_PHOTO_PREFIX @"cdv_photo_"
 
@@ -161,64 +162,73 @@ typedef enum : NSUInteger {
     // assets contains PHAsset objects.
     __block UIImage *ima;
 
-    for (PHAsset *asset in fetchArray) {
-      // Do something with the asset
+    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
+        // Do something...
 
-      [manager requestImageForAsset:asset
-                         targetSize:PHImageManagerMaximumSize
-                        contentMode:PHImageContentModeDefault
-                            options:requestOptions
-                      resultHandler:^void(UIImage *image, NSDictionary *info) {
-                          ima = image;
-                          
-                          NSData* data = nil;
-                          if (self.width == 0 && self.height == 0) {
-                              // no scaling required
-                              if (self.outputType == BASE64_STRING){
-                                  [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+        for (PHAsset *asset in fetchArray) {
+          // Do something with the asset
+
+          [manager requestImageForAsset:asset
+                             targetSize:PHImageManagerMaximumSize
+                            contentMode:PHImageContentModeDefault
+                                options:requestOptions
+                          resultHandler:^void(UIImage *image, NSDictionary *info) {
+                              ima = image;
+
+                              NSData* data = nil;
+                              if (self.width == 0 && self.height == 0) {
+                                  // no scaling required
+                                  if (self.outputType == BASE64_STRING){
+                                      [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                                  } else {
+                                      // if (self.quality == 100) {
+                                      //     // no scaling, no downsampling, this is the fastest option
+                                      //     [result_all addObject:filePath];
+                                      // } else {
+                                      //     // resample first
+                                      //     UIImage* image = [UIImage imageNamed:filePath];
+                                      //     data = UIImageJPEGRepresentation(image, self.quality/100.0f);
+                                      //     if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+                                      //         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+                                      //         break;
+                                      //     } else {
+                                      //         [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
+                                      //     }
+                                      // }
+                                  }
                               } else {
-                                  // if (self.quality == 100) {
-                                  //     // no scaling, no downsampling, this is the fastest option
-                                  //     [result_all addObject:filePath];
+                                  // scale
+                                  UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
+                                  data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+
+                                  // if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
+                                  //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
+                                  //     break;
                                   // } else {
-                                  //     // resample first
-                                  //     UIImage* image = [UIImage imageNamed:filePath];
-                                  //     data = UIImageJPEGRepresentation(image, self.quality/100.0f);
-                                  //     if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-                                  //         result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-                                  //         break;
-                                  //     } else {
-                                  //         [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
-                                  //     }
+                                      if(self.outputType == BASE64_STRING){
+                                          [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                                      // } else {
+                                      //     [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
+                                      }
                                   // }
                               }
-                          } else {
-                              // scale
-                              UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
-                              data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+                          }];
 
-                              // if (![data writeToFile:filePath options:NSAtomicWrite error:&err]) {
-                              //     result = [CDVPluginResult resultWithStatus:CDVCommandStatus_IO_EXCEPTION messageAsString:[err localizedDescription]];
-                              //     break;
-                              // } else {
-                                  if(self.outputType == BASE64_STRING){
-                                      [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                                  // } else {
-                                  //     [result_all addObject:[[NSURL fileURLWithPath:filePath] absoluteString]];
-                                  }
-                              // }
-                          }
-                      }];
+          [images addObject:ima];
+        }
 
-      [images addObject:ima];
-    }
+        if (result == nil) {
+            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:result_all];
+        }
 
-    if (result == nil) {
-        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:result_all];
-    }
+        [self.viewController dismissViewControllerAnimated:YES completion:nil];
+        [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
 
-    [self.viewController dismissViewControllerAnimated:YES completion:nil];
-    [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [MBProgressHUD hideHUDForView:self.view animated:YES];
+        });
+    });
 
 }
 

@@ -162,7 +162,7 @@ typedef enum : NSUInteger {
     // assets contains PHAsset objects.
     __block UIImage *ima;
 
-    [MBProgressHUD showHUDAddedTo:self.view animated:YES];
+    [MBProgressHUD showHUDAddedTo:picker.view animated:YES];
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
         // Do something...
 

@@ -138,9 +138,8 @@ typedef enum : NSUInteger {
 
     NSLog(@"GMImagePicker: User finished picking assets. Number of selected items is: %lu", (unsigned long)fetchArray.count);
 
-    [MBProgressHUD showHUDAddedTo:picker.view animated:YES];
+    // [MBProgressHUD showHUDAddedTo:picker.view animated:YES];
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
-        // Do something...
 
         NSMutableArray * result_all = [[NSMutableArray alloc] init];
         CGSize targetSize = CGSizeMake(self.width, self.height);
@@ -155,7 +154,7 @@ typedef enum : NSUInteger {
         requestOptions.synchronous = true;
 
         PHImageManager *manager = [PHImageManager defaultManager];
-        NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
+        //NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
 
         // assets contains PHAsset objects.
         __block UIImage *ima;
@@ -164,30 +163,34 @@ typedef enum : NSUInteger {
           // Do something with the asset
 
           [manager requestImageForAsset:asset
-                             targetSize:PHImageManagerMaximumSize
+                             targetSize:(self.width == 0 && self.height == 0) ? PHImageManagerMaximumSize : targetSize
                             contentMode:PHImageContentModeDefault
                                 options:requestOptions
                           resultHandler:^void(UIImage *image, NSDictionary *info) {
-                              ima = image;
+                              // ima = image;
+                              //
+                              // NSData* data = nil;
+                              // if (self.width == 0 && self.height == 0) {
+                              //     // no scaling required
+                              //     if (self.outputType == BASE64_STRING){
+                              //         [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                              //     }
+                              // } else {
+                              //     // scale
+                              //     UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
+                              //     data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
+                              //
+                              //     if (self.outputType == BASE64_STRING){
+                              //         [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
+                              //     }
+                              // }
 
-                              NSData* data = nil;
-                              if (self.width == 0 && self.height == 0) {
-                                  // no scaling required
-                                  if (self.outputType == BASE64_STRING){
-                                      [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                                  }
-                              } else {
-                                  // scale
-                                  UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
-                                  data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
-
-                                  if (self.outputType == BASE64_STRING){
-                                      [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                                  }
+                              if (self.outputType == BASE64_STRING){
+                                  [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
                               }
                           }];
 
-          [images addObject:ima];
+          //[images addObject:ima];
         }
 
         if (result == nil) {
@@ -197,9 +200,9 @@ typedef enum : NSUInteger {
         [self.viewController dismissViewControllerAnimated:YES completion:nil];
         [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
 
-        dispatch_async(dispatch_get_main_queue(), ^{
-            [MBProgressHUD hideHUDForView:picker.view animated:YES];
-        });
+        // dispatch_async(dispatch_get_main_queue(), ^{
+        //     [MBProgressHUD hideHUDForView:picker.view animated:YES];
+        // });
     });
 
 }

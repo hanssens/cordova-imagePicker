@@ -147,6 +147,14 @@ typedef enum : NSUInteger {
     NSString* filePath;
     CDVPluginResult* result = nil;
 
+
+    PHImageRequestOptions *requestOptions = [[PHImageRequestOptions alloc] init];
+    requestOptions.resizeMode   = PHImageRequestOptionsResizeModeExact;
+    requestOptions.deliveryMode = PHImageRequestOptionsDeliveryModeHighQualityFormat;
+
+    // this one is key
+    requestOptions.synchronous = true;
+
     PHImageManager *manager = [PHImageManager defaultManager];
     NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
 
@@ -159,7 +167,7 @@ typedef enum : NSUInteger {
       [manager requestImageForAsset:asset
                          targetSize:PHImageManagerMaximumSize
                         contentMode:PHImageContentModeDefault
-                            options:self.requestOptions
+                            options:requestOptions
                       resultHandler:^void(UIImage *image, NSDictionary *info) {
                           ima = image;
 

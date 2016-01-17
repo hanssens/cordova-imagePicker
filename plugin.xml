@@ -40,9 +40,6 @@
 		<header-file src="src/ios/GMImagePicker/GMAlbumsViewController.h" />
 		<source-file src="src/ios/GMImagePicker/GMAlbumsViewController.m" />
 		
-		<header-file src="src/ios/GMImagePicker/GMFetchItem.h" />
-		<source-file src="src/ios/GMImagePicker/GMFetchItem.m" />
-
 		<header-file src="src/ios/GMImagePicker/GMGridViewCell.h" />
 		<source-file src="src/ios/GMImagePicker/GMGridViewCell.m" />
 

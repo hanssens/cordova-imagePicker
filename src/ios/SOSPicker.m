@@ -153,7 +153,7 @@ typedef enum : NSUInteger {
     // assets contains PHAsset objects.
     __block UIImage *ima;
 
-    for (PHAsset *asset in fetchArray {
+    for (PHAsset *asset in fetchArray) {
       // Do something with the asset
 
       [manager requestImageForAsset:asset

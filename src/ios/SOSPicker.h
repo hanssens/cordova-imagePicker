@@ -13,12 +13,14 @@
 
 @property (copy)   NSString* callbackId;
 
-- (void) getPictures:(CDVInvokedUrlCommand *)command;
-- (UIImage*)imageByScalingNotCroppingForSize:(UIImage*)anImage toSize:(CGSize)frameSize;
+- (void)getPictures:(CDVInvokedUrlCommand *)command;
+- (void)clearSelectedAssets:(CDVInvokedUrlCommand *)command;
 
 @property (nonatomic, assign) NSInteger width;
 @property (nonatomic, assign) NSInteger height;
 @property (nonatomic, assign) NSInteger quality;
 @property (nonatomic, assign) NSInteger outputType;
+
+@property (nonatomic, strong) NSArray *previousSelectedAssets;
 
 @end

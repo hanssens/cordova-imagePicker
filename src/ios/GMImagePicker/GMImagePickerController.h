@@ -23,7 +23,6 @@ static CGSize const kPopoverContentSize = {480, 720};
  */
 @interface GMImagePickerController : UIViewController
 
-- (id)init:(bool)allow_v;
 
 /**
  *  The assets picker’s delegate object.
@@ -101,6 +100,8 @@ static CGSize const kPopoverContentSize = {480, 720};
 
 
 @property (nonatomic, strong) UINavigationController *navigationController;
+
+- (void)updateToolbar;
 
 /**
  *  Managing Asset Selection
@@ -247,8 +248,6 @@ static CGSize const kPopoverContentSize = {480, 720};
  *
  */
 - (void)assetsPickerController:(GMImagePickerController *)picker didUnhighlightAsset:(PHAsset *)asset;
-
-
 
 
 @end

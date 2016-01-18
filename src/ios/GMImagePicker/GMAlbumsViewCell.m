@@ -135,17 +135,13 @@
                                                                        multiplier:1.f constant:+4.f]]];
     }
 
-
-
     return self;
 }
 
-- (void)layoutSubviews
-{
+- (void)layoutSubviews {
     [super layoutSubviews];
 
     //TODO Reduce text font size if the name label does not fit screen.
-
 }
 
 - (void)setVideoLayout:(BOOL)isVideo

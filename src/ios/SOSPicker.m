@@ -13,10 +13,9 @@
 #import "MBProgressHUD.h"
 #import "UIImage+fixOrientation.m"
 
-#define CDV_PHOTO_PREFIX @"cdv_photo_"
 
 typedef enum : NSUInteger {
-    FILE_URI = 0,
+    FILE_URI = 0, // TODO
     BASE64_STRING = 1
 } SOSPickerOutputType;
 
@@ -27,15 +26,14 @@ typedef enum : NSUInteger {
 
 @synthesize callbackId;
 
-- (void) getPictures:(CDVInvokedUrlCommand *)command {
+- (void)getPictures:(CDVInvokedUrlCommand *)command {
 
     NSDictionary *options = [command.arguments objectAtIndex: 0];
 
     self.outputType = [[options objectForKey:@"outputType"] integerValue];
-    BOOL allow_video = [[options objectForKey:@"allow_video" ] boolValue ];
     NSString * title = [options objectForKey:@"title"];
     NSString * message = [options objectForKey:@"message"];
-    NSUInteger maxNumOfAllowedSelectedImages = [[options objectForKey:@"maximumImagesCount"] integerValue];
+    NSInteger maxNumOfAllowedSelectedImages = [[options objectForKey:@"maximumImagesCount"] integerValue];
     if (message == (id)[NSNull null]) {
       message = nil;
     }
@@ -44,16 +42,22 @@ typedef enum : NSUInteger {
     self.quality = [[options objectForKey:@"quality"] integerValue];
 
     self.callbackId = command.callbackId;
-    [self launchGMImagePicker:allow_video title:title
-                                        message:message
-                  maxNumOfAllowedSelectedImages:maxNumOfAllowedSelectedImages];
+    [self launchGMImagePickerWithTitle:title
+                               message:message
+         maxNumOfAllowedSelectedImages:maxNumOfAllowedSelectedImages];
 }
 
-- (void)launchGMImagePicker:(bool)allow_video title:(NSString *)title
-                                            message:(NSString *)message
-                      maxNumOfAllowedSelectedImages:(NSInteger)maxNumOfAllowedSelectedImages
-{
-    GMImagePickerController *picker = [[GMImagePickerController alloc] init:allow_video];
+- (void)clearSelectedAssets:(CDVInvokedUrlCommand *)command {
+  self.previousSelectedAssets = nil;
+  [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK]
+                              callbackId:self.callbackId];
+}
+
+- (void)launchGMImagePickerWithTitle:(NSString *) title
+                             message:(NSString *) message
+       maxNumOfAllowedSelectedImages:(NSInteger)maxNumOfAllowedSelectedImages {
+
+    GMImagePickerController *picker = [[GMImagePickerController alloc] init];
     picker.delegate = self;
     picker.title = title;
     picker.customNavigationBarPrompt = message;
@@ -63,83 +67,47 @@ typedef enum : NSUInteger {
     picker.minimumInteritemSpacing = 2.0;
     picker.modalPresentationStyle = UIModalPresentationPopover;
 
+    if (self.previousSelectedAssets != nil && self.previousSelectedAssets.count) {
+      [picker.selectedAssets addObjectsFromArray:self.previousSelectedAssets];
+      if (picker.displaySelectionInfoToolbar) {
+        [picker updateToolbar];
+      }
+    }
+
     UIPopoverPresentationController *popPC = picker.popoverPresentationController;
     popPC.permittedArrowDirections = UIPopoverArrowDirectionAny;
     popPC.sourceView = picker.view;
-    //popPC.sourceRect = nil;
 
     [self.viewController showViewController:picker sender:nil];
-}
-
-
-- (UIImage*)imageByScalingNotCroppingForSize:(UIImage*)anImage toSize:(CGSize)frameSize
-{
-    UIImage* sourceImage = anImage;
-    UIImage* newImage = nil;
-    CGSize imageSize = sourceImage.size;
-    CGFloat width = imageSize.width;
-    CGFloat height = imageSize.height;
-    CGFloat targetWidth = frameSize.width;
-    CGFloat targetHeight = frameSize.height;
-    CGFloat scaleFactor = 0.0;
-    CGSize scaledSize = frameSize;
-
-    if (CGSizeEqualToSize(imageSize, frameSize) == NO) {
-        CGFloat widthFactor = targetWidth / width;
-        CGFloat heightFactor = targetHeight / height;
-
-        // opposite comparison to imageByScalingAndCroppingForSize in order to contain the image within the given bounds
-        if (widthFactor == 0.0) {
-            scaleFactor = heightFactor;
-        } else if (heightFactor == 0.0) {
-            scaleFactor = widthFactor;
-        } else if (widthFactor > heightFactor) {
-            scaleFactor = heightFactor; // scale to fit height
-        } else {
-            scaleFactor = widthFactor; // scale to fit width
-        }
-        scaledSize = CGSizeMake(floor(width * scaleFactor), floor(height * scaleFactor));
-    }
-
-    UIGraphicsBeginImageContext(scaledSize); // this will resize
-
-    [sourceImage drawInRect:CGRectMake(0, 0, scaledSize.width, scaledSize.height)];
-
-    newImage = UIGraphicsGetImageFromCurrentImageContext();
-    if (newImage == nil) {
-        NSLog(@"could not scale image");
-    }
-
-    // pop the context to get back to the default
-    UIGraphicsEndImageContext();
-    return newImage;
 }
 
 
 #pragma mark - UIImagePickerControllerDelegate
 
 
-- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
-{
+- (void)imagePickerController:(UIImagePickerController *)picker
+didFinishPickingMediaWithInfo:(NSDictionary *)info {
     [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
     NSLog(@"UIImagePickerController: User finished picking assets");
 }
 
-- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker
-{
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
     [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
     NSLog(@"UIImagePickerController: User pressed cancel button");
 }
 
 #pragma mark - GMImagePickerControllerDelegate
 
-- (void)assetsPickerController:(GMImagePickerController *)picker didFinishPickingAssets:(NSArray *)fetchArray
-{
-    [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+- (void)assetsPickerController:(GMImagePickerController *)picker
+        didFinishPickingAssets:(NSArray *) assetsArray {
 
-    NSLog(@"GMImagePicker: User finished picking assets. Number of selected items is: %lu", (unsigned long)fetchArray.count);
+    self.previousSelectedAssets = [[NSArray alloc] initWithArray:assetsArray];
 
-    // [MBProgressHUD showHUDAddedTo:picker.view animated:YES];
+    [picker.presentingViewController dismissViewControllerAnimated:YES
+                                                        completion:nil];
+
+    NSLog(@"GMImagePicker: User finished picking assets. Number of selected items is: %lu", (unsigned long) assetsArray.count);
+
     dispatch_async(dispatch_get_global_queue( DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
 
         NSMutableArray * result_all = [[NSMutableArray alloc] init];
@@ -155,12 +123,8 @@ typedef enum : NSUInteger {
         requestOptions.synchronous = true;
 
         PHImageManager *manager = [PHImageManager defaultManager];
-        //NSMutableArray *images = [NSMutableArray arrayWithCapacity:[fetchArray count]];
 
-        // assets contains PHAsset objects.
-        __block UIImage *ima;
-
-        for (PHAsset *asset in fetchArray) {
+        for (PHAsset *asset in assetsArray ) {
           // Do something with the asset
 
           [manager requestImageForAsset:asset
@@ -168,42 +132,19 @@ typedef enum : NSUInteger {
                             contentMode:PHImageContentModeDefault
                                 options:requestOptions
                           resultHandler:^void(UIImage *image, NSDictionary *info) {
-                              // ima = image;
-                              //
-                              // NSData* data = nil;
-                              // if (self.width == 0 && self.height == 0) {
-                              //     // no scaling required
-                              //     if (self.outputType == BASE64_STRING){
-                              //         [result_all addObject:[UIImageJPEGRepresentation(image, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                              //     }
-                              // } else {
-                              //     // scale
-                              //     UIImage* scaledImage = [self imageByScalingNotCroppingForSize:image toSize:targetSize];
-                              //     data = UIImageJPEGRepresentation(scaledImage, self.quality/100.0f);
-                              //
-                              //     if (self.outputType == BASE64_STRING){
-                              //         [result_all addObject:[data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
-                              //     }
-                              // }
-
                               if (self.outputType == BASE64_STRING){
                                   [result_all addObject:[UIImageJPEGRepresentation(image.fixOrientation, self.quality/100.0f) base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength]];
                               }
                           }];
-
-          //[images addObject:ima];
         }
 
-        if (result == nil) {
-            result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:result_all];
-        }
+        result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                    messageAsArray:result_all];
 
-        [self.viewController dismissViewControllerAnimated:YES completion:nil];
-        [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
-
-        // dispatch_async(dispatch_get_main_queue(), ^{
-        //     [MBProgressHUD hideHUDForView:picker.view animated:YES];
-        // });
+        [self.viewController dismissViewControllerAnimated:YES
+                                                completion:nil];
+        [self.commandDelegate sendPluginResult:result
+                                    callbackId:self.callbackId];
     });
 
 }
@@ -212,8 +153,10 @@ typedef enum : NSUInteger {
 -(void)assetsPickerControllerDidCancel:(GMImagePickerController *)picker
 {
     [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
-    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:[[NSMutableArray alloc] init]];;
-    [self.commandDelegate sendPluginResult:result callbackId:self.callbackId];
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                 messageAsArray:[[NSMutableArray alloc] init]];;
+    [self.commandDelegate sendPluginResult:result
+                                callbackId:self.callbackId];
     NSLog(@"GMImagePicker: User pressed cancel button, no photos selected");
 }
 

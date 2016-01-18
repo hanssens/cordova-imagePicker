@@ -16,11 +16,8 @@
 
 @implementation GMImagePickerController
 
-- (id)init:(bool)allow_v
-{
-    if (self = [super init])
-    {
-        _allow_video = allow_v;
+- (id)init {
+    if (self = [super init]) {
 
         _maxNumOfAllowedSelectedImages = 15; // default
 
@@ -37,20 +34,25 @@
         _minimumInteritemSpacing = 2.0;
 
         //Sample of how to select the collections you want to display:
-        _customSmartCollections = @[@(PHAssetCollectionSubtypeSmartAlbumFavorites),
+        _customSmartCollections = @[
+                                    @(PHAssetCollectionSubtypeSmartAlbumFavorites),
                                     @(PHAssetCollectionSubtypeSmartAlbumRecentlyAdded),
-                                    @(PHAssetCollectionSubtypeSmartAlbumVideos),
-                                    @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
-                                    @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumVideos),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
                                     @(PHAssetCollectionSubtypeSmartAlbumBursts),
-                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)];
+                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)
+                                    ];
+
         //If you don't want to show smart collections, just put _customSmartCollections to nil;
         //_customSmartCollections=nil;
 
         //Which media types will display
-        _mediaTypes = @[@(PHAssetMediaTypeAudio),
-                        @(PHAssetMediaTypeVideo),
-                        @(PHAssetMediaTypeImage)];
+        _mediaTypes = @[
+//                        @(PHAssetMediaTypeAudio),
+//                        @(PHAssetMediaTypeVideo),
+                        @(PHAssetMediaTypeImage)
+                        ];
 
         self.preferredContentSize = kPopoverContentSize;
 
@@ -59,29 +61,25 @@
     return self;
 }
 
-- (void)dealloc
-{
+- (void)dealloc {
 
 }
 
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - Setup Navigation Controller
 
-- (void)setupNavigationController
-{
-    GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init:_allow_video];
+- (void)setupNavigationController {
+    GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init];
     _navigationController = [[UINavigationController alloc] initWithRootViewController:albumsViewController];
     _navigationController.delegate = self;
 
@@ -94,8 +92,7 @@
 
 #pragma mark - Select / Deselect Asset
 
-- (void)selectAsset:(PHAsset *)asset
-{
+- (void)selectAsset:(PHAsset *)asset {
     [self.selectedAssets insertObject:asset atIndex:self.selectedAssets.count];
 
     if (self.maxNumOfAllowedSelectedImages > 1) {
@@ -107,26 +104,24 @@
     }
 }
 
-- (void)deselectAsset:(PHAsset *)asset
-{
+- (void)deselectAsset:(PHAsset *)asset {
     [self.selectedAssets removeObjectAtIndex:[self.selectedAssets indexOfObject:asset]];
-    if(self.selectedAssets.count == 0)
-        [self updateDoneButton];
+    if(self.selectedAssets.count == 0) {
+      [self updateDoneButton];
+    }
 
-    if(self.displaySelectionInfoToolbar)
-        [self updateToolbar];
+    if (self.displaySelectionInfoToolbar) {
+      [self updateToolbar];
+    }
 }
 
-- (void)updateDoneButton
-{
+- (void)updateDoneButton {
     UINavigationController *nav = (UINavigationController *)self.childViewControllers[0];
     for (UIViewController *viewController in nav.viewControllers)
         viewController.navigationItem.rightBarButtonItem.enabled = (self.autoDisableDoneButton ? self.selectedAssets.count > 0 : TRUE);
-        //viewController.navigationItem.rightBarButtonItem.enabled = (self.selectedAssets.count > 0);
 }
 
-- (void)updateToolbar
-{
+- (void)updateToolbar {
     UINavigationController *nav = (UINavigationController *)self.childViewControllers[0];
     for (UIViewController *viewController in nav.viewControllers)
     {
@@ -137,8 +132,7 @@
 
 #pragma mark - User finish Actions
 
-- (void)dismiss:(id)sender
-{
+- (void)dismiss:(id)sender {
     if ([self.delegate respondsToSelector:@selector(assetsPickerControllerDidCancel:)])
         [self.delegate assetsPickerControllerDidCancel:self];
 
@@ -146,27 +140,22 @@
 }
 
 
-- (void)finishPickingAssets:(id)sender
-{
-    if ([self.delegate respondsToSelector:@selector(assetsPickerController:didFinishPickingAssets:)])
-        [self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedAssets];
-
-
-    //[self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+- (void)finishPickingAssets:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(assetsPickerController:didFinishPickingAssets:)]) {
+      [self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedAssets];
+    }
 }
 
 
 #pragma mark - Toolbar Title
 
-- (NSPredicate *)predicateOfAssetType:(PHAssetMediaType)type
-{
+- (NSPredicate *)predicateOfAssetType:(PHAssetMediaType)type {
     return [NSPredicate predicateWithBlock:^BOOL(PHAsset *asset, NSDictionary *bindings) {
         return (asset.mediaType==type);
     }];
 }
 
-- (NSString *)toolbarTitle
-{
+- (NSString *)toolbarTitle {
     if (self.selectedAssets.count == 0)
         return nil;
 
@@ -179,27 +168,22 @@
     if (nImages>0 && nVideos>0)
     {
         return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-items",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Items Selected" ), @(nImages+nVideos)];
-        //return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-items", @"GMImagePicker", @"%@ Items Selected" ), @(nImages+nVideos)];
     }
     else if (nImages>1)
     {
         return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-photos",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Photos Selected"), @(nImages)];
-        //return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-photos", @"GMImagePicker", @"%@ Photos Selected"), @(nImages)];
     }
     else if (nImages==1)
     {
         return NSLocalizedStringFromTableInBundle(@"picker.selection.single-photo",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"1 Photo Selected" );
-        //return NSLocalizedStringFromTable(@"picker.selection.single-photo", @"GMImagePicker", @"1 Photo Selected" );
     }
     else if (nVideos>1)
     {
         return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-videos",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Videos Selected"), @(nVideos)];
-        //return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-videos", @"GMImagePicker", @"%@ Videos Selected"), @(nVideos)];
     }
     else if (nVideos==1)
     {
         return NSLocalizedStringFromTableInBundle(@"picker.selection.single-video",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"1 Video Selected");
-        //return NSLocalizedStringFromTable(@"picker.selection.single-video", @"GMImagePicker", @"1 Video Selected");
     }
     else
     {
@@ -210,8 +194,7 @@
 
 #pragma mark - Toolbar Items
 
-- (UIBarButtonItem *)titleButtonItem
-{
+- (UIBarButtonItem *)titleButtonItem {
     UIBarButtonItem *title =
     [[UIBarButtonItem alloc] initWithTitle:self.toolbarTitle
                                      style:UIBarButtonItemStylePlain
@@ -227,19 +210,15 @@
     return title;
 }
 
-- (UIBarButtonItem *)spaceButtonItem
-{
+- (UIBarButtonItem *)spaceButtonItem {
     return [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 }
 
-- (NSArray *)toolbarItems
-{
+- (NSArray *)toolbarItems {
     UIBarButtonItem *title = [self titleButtonItem];
     UIBarButtonItem *space = [self spaceButtonItem];
 
     return @[space, title, space];
 }
-
-
 
 @end

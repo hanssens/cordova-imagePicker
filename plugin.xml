@@ -31,9 +31,6 @@
 		<header-file src="src/ios/SOSPicker.h" />
 		<source-file src="src/ios/SOSPicker.m" />
 
-    <header-file src="src/ios/MBProgressHUD.h" />
-		<source-file src="src/ios/MBProgressHUD.m" />
-
 		<header-file src="src/ios/GMImagePicker/UIImage+fixOrientation.h" />
 		<source-file src="src/ios/GMImagePicker/UIImage+fixOrientation.m" />
 

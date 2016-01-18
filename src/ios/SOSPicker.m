@@ -10,7 +10,6 @@
 
 
 #import "GMImagePickerController.h"
-#import "MBProgressHUD.h"
 #import "UIImage+fixOrientation.m"
 
 
@@ -50,7 +49,7 @@ typedef enum : NSUInteger {
 - (void)clearSelectedAssets:(CDVInvokedUrlCommand *)command {
   self.previousSelectedAssets = nil;
   [self.commandDelegate sendPluginResult:[CDVPluginResult resultWithStatus:CDVCommandStatus_OK]
-                              callbackId:self.callbackId];
+                              callbackId:command.callbackId];
 }
 
 - (void)launchGMImagePickerWithTitle:(NSString *) title

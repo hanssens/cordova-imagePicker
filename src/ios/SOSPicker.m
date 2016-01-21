@@ -149,14 +149,14 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 }
 
 //Optional implementation:
--(void)assetsPickerControllerDidCancel:(GMImagePickerController *)picker
-{
-    [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
-    CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                 messageAsArray:[[NSMutableArray alloc] init]];;
-    [self.commandDelegate sendPluginResult:result
-                                callbackId:self.callbackId];
-    NSLog(@"GMImagePicker: User pressed cancel button, no photos selected");
+-(void)assetsPickerControllerDidCancel:(GMImagePickerController *)picker {
+  self.previousSelectedAssets = nil;
+  [picker.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+  CDVPluginResult* result = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                               messageAsArray:[[NSMutableArray alloc] init]];;
+  [self.commandDelegate sendPluginResult:result
+                              callbackId:self.callbackId];
+  NSLog(@"GMImagePicker: User pressed cancel button, no photos selected");
 }
 
 

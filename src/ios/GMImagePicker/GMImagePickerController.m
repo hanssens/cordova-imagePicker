@@ -133,10 +133,49 @@
 #pragma mark - User finish Actions
 
 - (void)dismiss:(id)sender {
+
+  if ( [self.selectedAssets count] ) {
+
+    // alert user when they want to cancel while they have some photos selected
+
+    UIAlertController * alert = [UIAlertController
+        alertControllerWithTitle:@"Warning"
+                         message:@"Navigating back will reset all your previously selected photos. Would you like to continue?"
+                  preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction* ok = [UIAlertAction
+        actionWithTitle:@"Yes"
+                  style:UIAlertActionStyleDefault
+                handler:^(UIAlertAction * action)
+                {
+                    if ([self.delegate respondsToSelector:@selector(assetsPickerControllerDidCancel:)])
+                      [self.delegate assetsPickerControllerDidCancel:self];
+
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+
+    UIAlertAction* cancel = [UIAlertAction
+        actionWithTitle:@"No"
+                  style:UIAlertActionStyleDefault
+                handler:^(UIAlertAction * action)
+                {
+                    // do nothing
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+
+    [alert addAction:cancel];
+    [alert addAction:ok];
+
+    [self presentViewController:alert animated:YES completion:nil];
+
+  } else {
+
     if ([self.delegate respondsToSelector:@selector(assetsPickerControllerDidCancel:)])
         [self.delegate assetsPickerControllerDidCancel:self];
 
     [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+  }
+
 }
 
 
@@ -164,6 +203,39 @@
 
     NSInteger nImages = [self.selectedAssets filteredArrayUsingPredicate:photoPredicate].count;
     NSInteger nVideos = [self.selectedAssets filteredArrayUsingPredicate:videoPredicate].count;
+
+    if (self.maxNumOfAllowedSelectedImages) {
+
+      // showing #/# items selected
+
+      if (nImages > 0 && nVideos > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-items",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/%@ Items Selected" ),
+                @(nImages+nVideos), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else if (nImages > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-photos",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/%@ Photos Selected"),
+                @(nImages), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else if (nVideos > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-videos",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/@ Videos Selected"),
+                @(nVideos), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else {
+        return nil;
+      }
+    }
 
     if (nImages>0 && nVideos>0)
     {

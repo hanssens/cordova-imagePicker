@@ -229,7 +229,7 @@
                                               @"picker.selection.multiple-videos",
                                               @"GMImagePicker",
                                               [NSBundle bundleForClass:GMImagePickerController.class],
-                                              @"%@/@ Videos Selected"),
+                                              @"%@/%@ Videos Selected"),
                 @(nVideos), @(self.maxNumOfAllowedSelectedImages)];
 
       } else {

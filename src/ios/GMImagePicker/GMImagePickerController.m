@@ -95,12 +95,15 @@
 - (void)selectAsset:(PHAsset *)asset {
     [self.selectedAssets insertObject:asset atIndex:self.selectedAssets.count];
 
-    if (self.maxNumOfAllowedSelectedImages > 1) {
-        [self updateDoneButton];
+    if (self.maxNumOfAllowedSelectedImages == 1) {
+      // do not really need Done button and a toolbar for single image picker
+      return;
     }
 
+    [self updateDoneButton];
+
     if(self.displaySelectionInfoToolbar) {
-        [self updateToolbar];
+      [self updateToolbar];
     }
 }
 

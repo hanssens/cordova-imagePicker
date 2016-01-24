@@ -100,7 +100,12 @@ didFinishPickingMediaWithInfo:(NSDictionary *)info {
 - (void)assetsPickerController:(GMImagePickerController *)picker
         didFinishPickingAssets:(NSArray *) assetsArray {
 
-    self.previousSelectedAssets = [[NSArray alloc] initWithArray:assetsArray];
+    if (picker.maxNumOfAllowedSelectedImages == 1) {
+      // special case for single image picker
+      // do not cache pre-selected photo because the user will replace them with another one
+    } else {
+      self.previousSelectedAssets = [[NSArray alloc] initWithArray:assetsArray];
+    }
 
     [picker.presentingViewController dismissViewControllerAnimated:YES
                                                         completion:nil];

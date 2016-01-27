@@ -4,4 +4,23 @@
     <string name="free_version_label">無料版 - 残りの画像: %d</string>
     <string name="error_database">画像データベースを開く際にエラーがありました。問題を報告してください。</string>
     <string name="requesting_thumbnails">サムネイルをリクエスト中です。お待ちください。</string>
+    <string name="discard">Cancel</string>
+    <string name="done">OK</string>
+    <string name="video">Video</string>
+    <string name="refreshing">Refreshing</string>
+
+    <string name="image">Image </string>
+    <string name="images_tab">Images</string>
+    <string name="videos_tab">Videos</string>
+    <string name="max_limit_reach_error">Max limit 10 file</string>
+    <string name="max_limit_file">Max limit</string>
+    <string name="please_wait_text">Please wait</string>
+    <string name="file_size_exeeded">The file size exceeds the maximum limit of </string>
+    <string name="selected_file_size">Selected media size is : </string>
+    <string name="mb">MB</string>
+    <string name="plaese_select_file">Please select a file.</string>
+    <string name="file">file.</string>
+    <string name="files">files. </string>
+    <string name="no_media_file_available">No media file available.</string>
+    <string name="app_name">FotoSimpel</string>
 </resources>

@@ -26,12 +26,11 @@ public class ImagePicker extends CordovaPlugin {
 		 this.callbackContext = callbackContext;
 		 this.params = args.getJSONObject(0);
 		if (action.equals("getPictures")) {
-			Intent intent = new Intent(cordova.getActivity(), MultiImageChooserActivity.class);
+			Intent intent = new Intent(cordova.getActivity(), mediachooser.activity.BucketHomeFragmentActivity.class);
 			int max = 20;
 			int desiredWidth = 0;
 			int desiredHeight = 0;
 			int quality = 100;
-			int outputType = 0;
 			if (this.params.has("maximumImagesCount")) {
 				max = this.params.getInt("maximumImagesCount");
 			}
@@ -44,14 +43,10 @@ public class ImagePicker extends CordovaPlugin {
 			if (this.params.has("quality")) {
 				quality = this.params.getInt("quality");
 			}
-			if (this.params.has("outputType")) {
-				outputType = this.params.getInt("outputType");
-			}
 			intent.putExtra("MAX_IMAGES", max);
 			intent.putExtra("WIDTH", desiredWidth);
 			intent.putExtra("HEIGHT", desiredHeight);
 			intent.putExtra("QUALITY", quality);
-			intent.putExtra("OUTPUT_TYPE", outputType);
 			if (this.cordova != null) {
 				this.cordova.startActivityForResult((CordovaPlugin) this, intent, 0);
 			}

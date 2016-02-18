@@ -14,6 +14,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.Toast;
 import com.synconset.FakeR;
+import com.synconset.MultiImageChooserActivity;
 import mediachooser.BucketEntry;
 import mediachooser.MediaChooserConstants;
 import mediachooser.activity.HomeFragmentActivity;
@@ -60,41 +61,51 @@ public class BucketImageFragment extends Fragment{
 		}
 		return mView;
 	}
+	
+	private void init() {
+		Intent intent = getActivity().getIntent();
+		final int maxImages = intent.getIntExtra(MultiImageChooserActivity.MAX_IMAGES_KEY, MultiImageChooserActivity.NOLIMIT);
+		final int desiredWidth = intent.getIntExtra(MultiImageChooserActivity.WIDTH_KEY, 0);
+		final int desiredHeight = intent.getIntExtra(MultiImageChooserActivity.HEIGHT_KEY, 0);
+		final int quality = intent.getIntExtra(MultiImageChooserActivity.QUALITY_KEY, 0);
 
-
-	private void init(){
 		final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
-		 mCursor = getActivity().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PROJECTION_BUCKET, null, null, orderBy + " DESC");
+		mCursor = getActivity().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PROJECTION_BUCKET, null, null, orderBy + " DESC");
 		ArrayList<BucketEntry> buffer = new ArrayList<BucketEntry>();
 		try {
 			while (mCursor.moveToNext()) {
 				BucketEntry entry = new BucketEntry(
 						mCursor.getInt(INDEX_BUCKET_ID),
-						mCursor.getString(INDEX_BUCKET_NAME),mCursor.getString(INDEX_BUCKET_URL));
+						mCursor.getString(INDEX_BUCKET_NAME), mCursor.getString(INDEX_BUCKET_URL));
 
-				if (! buffer.contains(entry)) {
+				if (!buffer.contains(entry)) {
 					buffer.add(entry);
 				}
 			}
 
-			if(mCursor.getCount() > 0){
+			if (mCursor.getCount() > 0) {
 				mBucketAdapter = new BucketGridAdapter(getActivity(), 0, buffer, false);
 				mGridView.setAdapter(mBucketAdapter);
-			}else{
+			} else {
 				Toast.makeText(getActivity(), getActivity().getString(getRStringId("no_media_file_available")), Toast.LENGTH_SHORT).show();
 			}
 
 			mGridView.setOnItemClickListener(new OnItemClickListener() {
 
 				@Override
-				public void onItemClick(AdapterView<?> adapter, View view,
-						int position, long id) {
+				public void onItemClick(AdapterView<?> adapter, View view, int position, long id) {
 
-					BucketEntry bucketEntry  = (BucketEntry)adapter.getItemAtPosition(position);
-					Intent selectImageIntent = new Intent(getActivity(),HomeFragmentActivity.class);
+					BucketEntry bucketEntry = (BucketEntry) adapter.getItemAtPosition(position);
+					Intent selectImageIntent = new Intent(getActivity(), HomeFragmentActivity.class);
 					selectImageIntent.putExtra("name", bucketEntry.bucketName);
 					selectImageIntent.putExtra("image", true);
 					selectImageIntent.putExtra("isFromBucket", true);
+
+					selectImageIntent.putExtra(MultiImageChooserActivity.MAX_IMAGES_KEY, maxImages);
+					selectImageIntent.putExtra(MultiImageChooserActivity.WIDTH_KEY, desiredWidth);
+					selectImageIntent.putExtra(MultiImageChooserActivity.HEIGHT_KEY, desiredHeight);
+					selectImageIntent.putExtra(MultiImageChooserActivity.QUALITY_KEY, quality);
+
 					getActivity().startActivityForResult(selectImageIntent, MediaChooserConstants.BUCKET_SELECT_IMAGE_CODE);
 				}
 			});

@@ -498,6 +498,19 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
             
             fetch_item.be_saving_img = true;
             
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+                
+                if ( cell ) {
+                    [cell hide_fetching];
+                }
+                
+                //Your main thread code goes in here
+                [ collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone ];
+                [ self collectionView:collectionView didSelectItemAtIndexPath:indexPath ];
+            });
+          
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 
                 
@@ -521,19 +534,6 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
                 
                 fetch_item.image_fullsize = filePath;
                 fetch_item.be_saving_img = false;
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    
-                    GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-                    
-                    if ( cell ) {
-                        [cell hide_fetching];
-                    }
-
-                    //Your main thread code goes in here
-                    [ collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone ];
-                    [ self collectionView:collectionView didSelectItemAtIndexPath:indexPath ];
-                });
                 
             });
             //});

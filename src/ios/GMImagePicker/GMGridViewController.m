@@ -17,7 +17,7 @@
 
 
 
-#define CDV_PHOTO_PREFIX @"cdv_photo_"
+#define CDV_PHOTO_PREFIX @"MyCloud_"
 #define CDV_THUMB_PREFIX @"cdv_thumb_"
 
 
@@ -487,12 +487,30 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
             //asset.image_fullsize = result;
             
             NSString * filePath;
+            NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
+            NSString* formattedMilliseconds = [NSString stringWithFormat:@"%.0f", timeStamp];
+            
             do {
-                filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, docCount++, @"jpg"];
+                filePath = [NSString stringWithFormat:@"%@/%@%@_%03d.%@", docsPath, CDV_PHOTO_PREFIX, formattedMilliseconds, docCount++, @"jpg"];
             } while ([fileMgr fileExistsAtPath:filePath]);
+            
+            NSLog(@"Selected File name: %@", filePath);
             
             fetch_item.be_saving_img = true;
             
+            dispatch_async(dispatch_get_main_queue(), ^{
+                
+                GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+                
+                if ( cell ) {
+                    [cell hide_fetching];
+                }
+                
+                //Your main thread code goes in here
+                [ collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone ];
+                [ self collectionView:collectionView didSelectItemAtIndexPath:indexPath ];
+            });
+          
             dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
                 
                 
@@ -502,31 +520,20 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 //                  return;
 //              }
                 
-                NSLog(@"original orientation: %ld",(UIImageOrientation)result.imageOrientation);
+                //NSLog(@"original orientation: %ld",(UIImageOrientation)result.imageOrientation);
                 
-                UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
+                //UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
                 
-          		NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
+          		//NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
 
+                UIImage *imageToDisplay = result;
+                
                 if ( ![ UIImageJPEGRepresentation(imageToDisplay, 1.0f ) writeToFile:filePath atomically:YES ] ) {
                     return;
                 }
                 
                 fetch_item.image_fullsize = filePath;
                 fetch_item.be_saving_img = false;
-                
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    
-                    GMGridViewCell *cell = (GMGridViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
-                    
-                    if ( cell ) {
-                        [cell hide_fetching];
-                    }
-
-                    //Your main thread code goes in here
-                    [ collectionView selectItemAtIndexPath:indexPath animated:NO scrollPosition:UICollectionViewScrollPositionNone ];
-                    [ self collectionView:collectionView didSelectItemAtIndexPath:indexPath ];
-                });
                 
             });
             //});

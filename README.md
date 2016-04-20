@@ -8,9 +8,9 @@ Cordova Plugin For Multiple Image Selection - implemented for iOS and Android 4.
 The plugin conforms to the Cordova plugin specification, it can be installed
 using the Cordova / Phonegap command line interface.
 
-    phonegap plugin add https://github.com/wymsee/cordova-imagePicker.git
+    phonegap plugin add https://github.com/spacegraym3/cordova-imagePicker.git
 
-    cordova plugin add https://github.com/wymsee/cordova-imagePicker.git
+    cordova plugin add https://github.com/spacegraym3/cordova-imagePicker.git
 
 
 ## Using the plugin
@@ -49,7 +49,7 @@ window.imagePicker.getPictures(
 ### Options
 
     options = {
-        // max images to be selected, defaults to 15. If this is set to 1, upon
+        // Android only. Max images to be selected, defaults to 15. If this is set to 1, upon
         // selection of a single image, the plugin will return it.
         maximumImagesCount: int,
         
@@ -74,6 +74,38 @@ window.imagePicker.getPictures(
 ### Note for Android Use
 
 When outputType is FILE_URI the plugin returns images that are stored in a temporary directory.  These images will often not be deleted automatically though.  The files should be moved or deleted after you get their filepaths in javascript. If Base64 Strings are being returned, there is nothing to clean up.
+
+## Android 6 (M) Permissions
+On Android 6 you need to request permission to read external storage at runtime when targeting API level 23+.
+Even if the `uses-permission` tags for the Calendar are present in `AndroidManifest.xml`.
+
+Note that the `hasReadPermission` function will return true when:
+
+- You're running this on iOS, or
+- You're targeting an API level lower than 23, or
+- You're using Android < 6, or
+- You've already granted permission.
+
+```js
+  function hasReadPermission() {
+    window.imagePicker.hasReadPermission(
+      function(result) {
+        // if this is 'false' you probably want to call 'requestReadPermission' now
+        alert(result);
+      }
+    )
+  }
+
+  function requestReadPermission() {
+    // no callbacks required as this opens a popup which returns async
+    window.imagePicker.requestReadPermission();
+  }
+```
+
+Note that backward compatibility was added by checking for read permission automatically when `getPictures` is called.
+If permission is needed the plugin will now show the permission request popup.
+The user will then need to allow access and invoke the same method again after doing so.
+
 
 ## Libraries used
 

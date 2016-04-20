@@ -507,12 +507,14 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
 //                  return;
 //              }
                 
-                NSLog(@"original orientation: %ld",(UIImageOrientation)result.imageOrientation);
+                //NSLog(@"original orientation: %ld",(UIImageOrientation)result.imageOrientation);
                 
-                UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
+                //UIImage *imageToDisplay = result.fixOrientation; //  UIImage+fixOrientation extension
                 
-          		NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
+          		//NSLog(@"corrected orientation: %ld",(UIImageOrientation)imageToDisplay.imageOrientation);
 
+                UIImage *imageToDisplay = result;
+                
                 if ( ![ UIImageJPEGRepresentation(imageToDisplay, 1.0f ) writeToFile:filePath atomically:YES ] ) {
                     return;
                 }

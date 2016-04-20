@@ -17,7 +17,7 @@
 
 
 
-#define CDV_PHOTO_PREFIX @"cdv_photo_"
+#define CDV_PHOTO_PREFIX @"MyCloud_"
 #define CDV_THUMB_PREFIX @"cdv_thumb_"
 
 
@@ -487,9 +487,14 @@ NSString * const GMGridViewCellIdentifier = @"GMGridViewCellIdentifier";
             //asset.image_fullsize = result;
             
             NSString * filePath;
+            NSTimeInterval timeStamp = [[NSDate date] timeIntervalSince1970];
+            NSString* formattedMilliseconds = [NSString stringWithFormat:@"%.0f", timeStamp];
+            
             do {
-                filePath = [NSString stringWithFormat:@"%@/%@%03d.%@", docsPath, CDV_PHOTO_PREFIX, docCount++, @"jpg"];
+                filePath = [NSString stringWithFormat:@"%@/%@%@_%03d.%@", docsPath, CDV_PHOTO_PREFIX, formattedMilliseconds, docCount++, @"jpg"];
             } while ([fileMgr fileExistsAtPath:filePath]);
+            
+            NSLog(@"Selected File name: %@", filePath);
             
             fetch_item.be_saving_img = true;
             

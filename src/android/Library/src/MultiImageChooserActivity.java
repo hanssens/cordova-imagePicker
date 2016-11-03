@@ -86,6 +86,7 @@ public class MultiImageChooserActivity extends Activity implements OnItemClickLi
     public static final String WIDTH_KEY = "WIDTH";
     public static final String HEIGHT_KEY = "HEIGHT";
     public static final String QUALITY_KEY = "QUALITY";
+	public static final String THUMB_SIZE_KEY = "THUMB_SIZE";
 
     private ImageAdapter ia;
 

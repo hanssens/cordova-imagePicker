@@ -163,16 +163,16 @@ public class ImageFragment extends Fragment {
 				if(! galleryModel.status){
 					long size = MediaChooserConstants.ChekcMediaFileSize(new File(galleryModel.url.toString()), false);
 					if(size != 0){
-						Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("file_size_exeeded")) + "  " + MediaChooserConstants.SELECTED_IMAGE_SIZE_IN_MB + " " +  getActivity().getResources().getString(getRStringId("mb")), Toast.LENGTH_SHORT).show();
+						Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("file_size_exceeded")) + " " + MediaChooserConstants.SELECTED_IMAGE_SIZE_IN_MB + " " +  getActivity().getResources().getString(getRStringId("mb")), Toast.LENGTH_SHORT).show();
 						return;
 					}
 
 					if((MediaChooserConstants.MAX_MEDIA_LIMIT == MediaChooserConstants.SELECTED_MEDIA_COUNT)){
 						if (MediaChooserConstants.SELECTED_MEDIA_COUNT < 2) {
-							Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("max_limit_file")) + "  " + MediaChooserConstants.SELECTED_MEDIA_COUNT + " " +  getActivity().getResources().getString(getRStringId("files")), Toast.LENGTH_SHORT).show();
+							Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("max_limit_file")) + " " + MediaChooserConstants.SELECTED_MEDIA_COUNT + " " +  getActivity().getResources().getString(getRStringId("files")), Toast.LENGTH_SHORT).show();
 							return;
 						} else {
-							Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("max_limit_file")) + "  " + MediaChooserConstants.SELECTED_MEDIA_COUNT + " " +  getActivity().getResources().getString(getRStringId("files")), Toast.LENGTH_SHORT).show();
+							Toast.makeText(getActivity(), getActivity().getResources().getString(getRStringId("max_limit_file")) + " " + MediaChooserConstants.SELECTED_MEDIA_COUNT + " " +  getActivity().getResources().getString(getRStringId("files")), Toast.LENGTH_SHORT).show();
 							return;
 						}
 

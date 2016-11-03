@@ -4,10 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.Matrix;
+import android.graphics.*;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -25,6 +22,7 @@ import android.widget.*;
 import android.widget.TabHost.OnTabChangeListener;
 import com.synconset.FakeR;
 import com.synconset.MultiImageChooserActivity;
+import mediachooser.FileThumbModel;
 import mediachooser.MediaChooser;
 import mediachooser.MediaChooserConstants;
 import mediachooser.fragment.ImageFragment;
@@ -36,7 +34,6 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 
 public class HomeFragmentActivity extends FragmentActivity implements ImageFragment.OnImageSelectedListener{
 
@@ -62,6 +59,7 @@ public class HomeFragmentActivity extends FragmentActivity implements ImageFragm
 		desiredWidth = getIntent().getIntExtra(MultiImageChooserActivity.WIDTH_KEY, 0);
 		desiredHeight = getIntent().getIntExtra(MultiImageChooserActivity.HEIGHT_KEY, 0);
 		quality = getIntent().getIntExtra(MultiImageChooserActivity.QUALITY_KEY, 0);
+		thumbSize = getIntent().getIntExtra(MultiImageChooserActivity.THUMB_SIZE_KEY, 0);
 		maxImageCount = maxImages;
 
 
@@ -271,7 +269,7 @@ public class HomeFragmentActivity extends FragmentActivity implements ImageFragm
 
 //					finish();
 				}else{
-					Toast.makeText(HomeFragmentActivity.this, getString(getRStringId("plaese_select_file")), Toast.LENGTH_SHORT).show();
+					Toast.makeText(HomeFragmentActivity.this, getString(getRStringId("please_select_file")), Toast.LENGTH_SHORT).show();
 				}
 
 			}else if(view == leftLinearContainer){
@@ -445,9 +443,10 @@ public class HomeFragmentActivity extends FragmentActivity implements ImageFragm
 	private int desiredWidth;
 	private int desiredHeight;
 	private int quality;
+	private int thumbSize;
 	private ProgressDialog progress;
 
-	private class ResizeImagesTask extends AsyncTask<Set<Map.Entry<String, Integer>>, Void, ArrayList<String>>{
+	private class ResizeImagesTask extends AsyncTask<Set<Map.Entry<String, Integer>>, Void, ArrayList<FileThumbModel>>{
 		private Exception asyncTaskError = null;
 		ArrayList<String> selectedImageList;
 
@@ -459,109 +458,120 @@ public class HomeFragmentActivity extends FragmentActivity implements ImageFragm
 		protected void onPreExecute() {
 			super.onPreExecute();
 			progress = new ProgressDialog(HomeFragmentActivity.this);
-			progress.setTitle("Processing Images");
-			progress.setMessage("This may take a few moments");
+			progress.setTitle(getResources().getString(getRStringId("processing_images_title")));
+			progress.setMessage(getResources().getString(getRStringId("processing_images_message")));
+			progress.setCancelable(false);
 			progress.show();
 		}
 
 		@Override
-		protected ArrayList<String> doInBackground(Set<Map.Entry<String, Integer>>... fileSets) {
-			Set<Map.Entry<String, Integer>> fileNames = fileSets[0];
-			ArrayList<String> al = new ArrayList<String>();
-			try {
-				Iterator<Map.Entry<String, Integer>> i = fileNames.iterator();
-				Bitmap bmp;
-				while(i.hasNext()) {
-					Map.Entry<String, Integer> imageInfo = i.next();
-					File file = new File(imageInfo.getKey());
-					int rotate = imageInfo.getValue().intValue();
-					BitmapFactory.Options options = new BitmapFactory.Options();
-					options.inSampleSize = 1;
-					options.inJustDecodeBounds = true;
-					BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-					int width = options.outWidth;
-					int height = options.outHeight;
-					float scale = calculateScale(width, height);
-					if (scale < 1) {
-						int finalWidth = (int)(width * scale);
-						int finalHeight = (int)(height * scale);
-						int inSampleSize = calculateInSampleSize(options, finalWidth, finalHeight);
-						options = new BitmapFactory.Options();
-						options.inSampleSize = inSampleSize;
-						try {
-							bmp = this.tryToGetBitmap(file, options, rotate, true);
-						} catch (OutOfMemoryError e) {
-							options.inSampleSize = calculateNextSampleSize(options.inSampleSize);
-							try {
-								bmp = this.tryToGetBitmap(file, options, rotate, false);
-							} catch (OutOfMemoryError e2) {
-								throw new IOException("Unable to load image into memory.");
-							}
-						}
-					} else {
-						try {
-							bmp = this.tryToGetBitmap(file, null, rotate, false);
-						} catch(OutOfMemoryError e) {
-							options = new BitmapFactory.Options();
-							options.inSampleSize = 2;
-							try {
-								bmp = this.tryToGetBitmap(file, options, rotate, false);
-							} catch(OutOfMemoryError e2) {
-								options = new BitmapFactory.Options();
-								options.inSampleSize = 4;
-								try {
-									bmp = this.tryToGetBitmap(file, options, rotate, false);
-								} catch (OutOfMemoryError e3) {
-									throw new IOException("Unable to load image into memory.");
-								}
-							}
-						}
-					}
+        protected ArrayList<FileThumbModel> doInBackground(Set<Map.Entry<String, Integer>>... fileSets) {
+            Set<Map.Entry<String, Integer>> fileNames = fileSets[0];
+            ArrayList<FileThumbModel> files = new ArrayList();
 
-					file = this.storeImage(bmp, file.getName());
-					al.add(Uri.fromFile(file).toString());
-				}
-				return al;
-			} catch(IOException e) {
-				try {
-					asyncTaskError = e;
-					for (int i = 0; i < al.size(); i++) {
-						URI uri = new URI(al.get(i));
-						File file = new File(uri);
-						file.delete();
-					}
-				} catch(Exception exception) {
-					// the finally does what we want to do
-				} finally {
-					return new ArrayList<String>();
-				}
-			}
-		}
+            try {
+                Iterator<Map.Entry<String, Integer>> i = fileNames.iterator();
+                Bitmap bmp;
+                while(i.hasNext()) {
+                    Map.Entry<String, Integer> imageInfo = i.next();
+                    File originalFile = new File(imageInfo.getKey());
+                    int rotate = imageInfo.getValue().intValue();
+                    BitmapFactory.Options options = new BitmapFactory.Options();
+                    options.inSampleSize = 1;
+                    options.inJustDecodeBounds = true;
+                    BitmapFactory.decodeFile(originalFile.getAbsolutePath(), options);
+                    int width = options.outWidth;
+                    int height = options.outHeight;
+                    float scale = calculateScale(width, height);
+                    if (scale < 1) {
+                        int finalWidth = (int)(width * scale);
+                        int finalHeight = (int)(height * scale);
+                        int inSampleSize = calculateInSampleSize(options, finalWidth, finalHeight);
+                        options = new BitmapFactory.Options();
+                        options.inSampleSize = inSampleSize;
+                        try {
+                            bmp = this.tryToGetBitmap(originalFile, options, rotate, true);
+                        } catch (OutOfMemoryError e) {
+                            options.inSampleSize = calculateNextSampleSize(options.inSampleSize);
+                            try {
+                                bmp = this.tryToGetBitmap(originalFile, options, rotate, false);
+                            } catch (OutOfMemoryError e2) {
+                                throw new IOException("Unable to load image into memory.");
+                            }
+                        }
+                    } else {
+                        try {
+                            bmp = this.tryToGetBitmap(originalFile, null, rotate, false);
+                        } catch(OutOfMemoryError e) {
+                            options = new BitmapFactory.Options();
+                            options.inSampleSize = 2;
+                            try {
+                                bmp = this.tryToGetBitmap(originalFile, options, rotate, false);
+                            } catch(OutOfMemoryError e2) {
+                                options = new BitmapFactory.Options();
+                                options.inSampleSize = 4;
+                                try {
+                                    bmp = this.tryToGetBitmap(originalFile, options, rotate, false);
+                                } catch (OutOfMemoryError e3) {
+                                    throw new IOException("Unable to load image into memory.");
+                                }
+                            }
+                        }
+                    }
+
+                    originalFile = this.storeImage(bmp, originalFile.getName());
+                    File thumbFile = this.storeImageThumb(bmp, originalFile.getName(), thumbSize);
+
+                    FileThumbModel fileThumbModel = new FileThumbModel();
+                    fileThumbModel.original = Uri.fromFile(originalFile).toString();
+                    fileThumbModel.thumb = Uri.fromFile(thumbFile).toString();
+
+                    files.add(fileThumbModel);
+                }
+                return files;
+            } catch(IOException e) {
+                try {
+                    asyncTaskError = e;
+                    for (int i = 0; i < files.size(); i++) {
+                        FileThumbModel fileThumbModel = files.get(i);
+                        URI originalUri = new URI(fileThumbModel.original);
+                        URI thumbUri = new URI(fileThumbModel.thumb);
+                        File originalFile = new File(originalUri);
+                        File thumbFile = new File(thumbUri);
+                        originalFile.delete();
+                        thumbFile.delete();
+                    }
+                } catch(Exception exception) {
+                    // the finally does what we want to do
+                } finally {
+                    return new ArrayList<FileThumbModel>();
+                }
+            }
+        }
 
 		@Override
-		protected void onPostExecute(ArrayList<String> al) {
-			Intent data = new Intent();
+        protected void onPostExecute(ArrayList<FileThumbModel> al) {
+            Intent data = new Intent();
 
-			if (asyncTaskError != null) {
-				Bundle res = new Bundle();
-				res.putString("ERRORMESSAGE", asyncTaskError.getMessage());
-				data.putExtras(res);
-				setResult(RESULT_CANCELED, data);
-			} else if (al.size() > 0) {
-				Bundle res = new Bundle();
-				res.putStringArrayList("MULTIPLEFILENAMES", al);
+            if (asyncTaskError != null) {
+                Bundle res = new Bundle();
+                res.putString("ERRORMESSAGE", asyncTaskError.getMessage());
+                data.putExtras(res);
+                setResult(RESULT_CANCELED, data);
+            } else if (al.size() > 0) {
+                Bundle res = new Bundle();
+                res.putParcelableArrayList("MULTIPLEFILENAMES", al);
+                data.putStringArrayListExtra("list", selectedImageList);
+                res.putInt("TOTALFILES", al.size());
+                data.putExtras(res);
+                setResult(RESULT_OK, data);
+            } else {
+                setResult(RESULT_CANCELED, data);
+            }
 
-				data.putStringArrayListExtra("list", selectedImageList);
-				res.putInt("TOTALFILES", al.size());
-				data.putExtras(res);
-				setResult(RESULT_OK, data);
-			} else {
-				setResult(RESULT_CANCELED, data);
-			}
-
-			progress.dismiss();
-			finish();
-		}
+            progress.dismiss();
+            finish();
+        }
 
 		private Bitmap tryToGetBitmap(File file, BitmapFactory.Options options, int rotate, boolean shouldScale) throws IOException, OutOfMemoryError {
 			Bitmap bmp;
@@ -609,6 +619,50 @@ public class HomeFragmentActivity extends FragmentActivity implements ImageFragm
 			outStream.close();
 			return file;
 		}
+
+        private File storeImageThumb(Bitmap bm, String fileName, int thumbSize) throws IOException {
+            Bitmap bmp = Bitmap.createBitmap((int)thumbSize, (int)thumbSize, Bitmap.Config.ARGB_8888);
+            float originalWidth = bm.getWidth(), originalHeight = bm.getHeight();
+            Canvas canvas = new Canvas(bmp);
+
+			float widthScale = thumbSize/originalWidth;
+            float heightScale = thumbSize/originalHeight;
+
+            // Set scale, xTranslation and yTranslation depending on image being portrait or landscape
+            // This will make sure the image is stretched to the thumbnail borders
+            float scale, xTranslation, yTranslation;
+            if(widthScale > heightScale) {
+                scale = widthScale;
+                yTranslation = (thumbSize - originalHeight * scale) / 2.0f;
+                xTranslation = 0f;
+            }
+            else {
+                scale = heightScale;
+                yTranslation = 0f;
+                xTranslation = (thumbSize - originalWidth * scale) / 2.0f;
+            }
+			
+            Matrix transformation = new Matrix();
+            transformation.postTranslate(xTranslation, yTranslation);
+            transformation.preScale(scale, scale);
+            Paint paint = new Paint();
+            paint.setFilterBitmap(true);
+            canvas.drawBitmap(bm, transformation, paint);
+			
+            int index = fileName.lastIndexOf('.');
+            String name = fileName.substring(0, index);
+            String ext = fileName.substring(index);
+            File file = File.createTempFile("tmp_thumb_" + name, ext);
+            OutputStream outStream = new FileOutputStream(file);
+            if (ext.compareToIgnoreCase(".png") == 0) {
+                bmp.compress(Bitmap.CompressFormat.PNG, quality, outStream);
+            } else {
+                bmp.compress(Bitmap.CompressFormat.JPEG, quality, outStream);
+            }
+            outStream.flush();
+            outStream.close();
+            return file;
+        }
 
 		private Bitmap getResizedBitmap(Bitmap bm, float factor) {
 			int width = bm.getWidth();

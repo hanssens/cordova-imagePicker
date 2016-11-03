@@ -182,7 +182,7 @@ public class BucketHomeFragmentActivity extends FragmentActivity {
 		});
 		mTabHost.getTabWidget().getChildAt(0).setVisibility(View.GONE);
 
-		headerBarTitle.setText("Cancel");
+		headerBarTitle.setText(getResources().getString(getRId("string", "discard")));
 		headerBarBack.setImageResource(FakeR.getId(this,"drawable","ic_cancel"));
 
 //		RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) headerBarCamera.getLayoutParams();
@@ -224,7 +224,7 @@ public class BucketHomeFragmentActivity extends FragmentActivity {
 			}else if(view == headerBarDone){
 
 				if(mSelectedImage.size() == 0 && mSelectedVideo.size() == 0){
-					Toast.makeText(BucketHomeFragmentActivity.this, getString(getRId("string","plaese_select_file")), Toast.LENGTH_SHORT).show();
+					Toast.makeText(BucketHomeFragmentActivity.this, getString(getRId("string","please_select_file")), Toast.LENGTH_SHORT).show();
 
 				}else{
 
@@ -340,6 +340,9 @@ public class BucketHomeFragmentActivity extends FragmentActivity {
 //					}
 //				}, 5000);
 //			}
+		} else if(resultCode == Activity.RESULT_CANCELED){
+            // Reset selected image count on cancel
+            MediaChooser.setSelectedMediaCount(0);
 		}
 	}
 

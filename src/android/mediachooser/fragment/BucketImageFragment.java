@@ -68,6 +68,7 @@ public class BucketImageFragment extends Fragment{
 		final int desiredWidth = intent.getIntExtra(MultiImageChooserActivity.WIDTH_KEY, 0);
 		final int desiredHeight = intent.getIntExtra(MultiImageChooserActivity.HEIGHT_KEY, 0);
 		final int quality = intent.getIntExtra(MultiImageChooserActivity.QUALITY_KEY, 0);
+		final int thumbSize = intent.getIntExtra(MultiImageChooserActivity.THUMB_SIZE_KEY, 0);
 
 		final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
 		mCursor = getActivity().getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, PROJECTION_BUCKET, null, null, orderBy + " DESC");
@@ -105,6 +106,7 @@ public class BucketImageFragment extends Fragment{
 					selectImageIntent.putExtra(MultiImageChooserActivity.WIDTH_KEY, desiredWidth);
 					selectImageIntent.putExtra(MultiImageChooserActivity.HEIGHT_KEY, desiredHeight);
 					selectImageIntent.putExtra(MultiImageChooserActivity.QUALITY_KEY, quality);
+					selectImageIntent.putExtra(MultiImageChooserActivity.THUMB_SIZE_KEY, thumbSize);
 
 					getActivity().startActivityForResult(selectImageIntent, MediaChooserConstants.BUCKET_SELECT_IMAGE_CODE);
 				}

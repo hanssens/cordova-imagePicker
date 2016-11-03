@@ -80,7 +80,7 @@ public class GridViewAdapter extends ArrayAdapter<MediaModel> {
 //			new VideoLoadAsync(videoFragment, holder.imageView, false, mWidth/2).executeOnExecutor(MediaAsync.THREAD_POOL_EXECUTOR, mGalleryModelList.get(position).url.toString());
 
 		}else{
-			ImageLoadAsync loadAsync = new ImageLoadAsync(mContext, holder.imageView, mWidth/2);
+			ImageLoadAsync loadAsync = new ImageLoadAsync(mContext, holder.imageView, mWidth/3);
 			loadAsync.executeOnExecutor(MediaAsync.THREAD_POOL_EXECUTOR, mGalleryModelList.get(position).url);
 		}
 

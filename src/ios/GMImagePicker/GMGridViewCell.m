@@ -17,7 +17,6 @@
 
 @implementation GMGridViewCell
 
-@synthesize circularProgressView;
 
 static UIFont *titleFont;
 static CGFloat titleHeight;
@@ -41,7 +40,7 @@ static UIColor *disabledColor;
 - (void)awakeFromNib
 {
     [super awakeFromNib];
-    
+
     self.contentView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
     self.contentView.translatesAutoresizingMaskIntoConstraints = YES;
 }
@@ -52,9 +51,9 @@ static UIColor *disabledColor;
     {
         self.opaque                 = NO;
         self.enabled                = YES;
-        
+
         CGFloat cellSize = self.contentView.bounds.size.width;
-        
+
         // The image view
         _imageView = [UIImageView new];
         _imageView.frame = CGRectMake(0, 0, cellSize, cellSize);
@@ -71,8 +70,8 @@ static UIColor *disabledColor;
         _imageView.translatesAutoresizingMaskIntoConstraints = NO;
         _imageView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
         [self addSubview:_imageView];
-        
-        
+
+
         // The video gradient, label & icon
         float x_offset = 4.0f;
         UIColor *topGradient = [UIColor colorWithRed:0.00 green:0.00 blue:0.00 alpha:0.0];
@@ -86,16 +85,17 @@ static UIColor *disabledColor;
         _gradientView.translatesAutoresizingMaskIntoConstraints = NO;
         [self addSubview:_gradientView];
         _gradientView.hidden = YES;
-        
+
         _videoIcon = [UIImageView new];
         _videoIcon.frame = CGRectMake(x_offset, self.bounds.size.height-titleHeight, self.bounds.size.width-2*x_offset, titleHeight);
         _videoIcon.contentMode = UIViewContentModeLeft;
-        _videoIcon.image = [UIImage imageNamed:@"GMVideoIcon"];
+        //_videoIcon.image = [UIImage imageNamed:@"GMVideoIcon"];
+        _videoIcon.image = [UIImage imageNamed:@"GMVideoIcon" inBundle:[NSBundle bundleForClass:GMGridViewCell.class] compatibleWithTraitCollection:nil];
         _videoIcon.translatesAutoresizingMaskIntoConstraints = NO;
         _videoIcon.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
         [self addSubview:_videoIcon];
         _videoIcon.hidden = YES;
-        
+
         _videoDuration = [UILabel new];
         _videoDuration.font = titleFont;
         _videoDuration.textColor = titleColor;
@@ -106,7 +106,7 @@ static UIColor *disabledColor;
         _videoDuration.autoresizingMask = UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleWidth;
         [self addSubview:_videoDuration];
         _videoDuration.hidden = YES;
-        
+
         // Selection overlay & icon
         _coverView = [[UIView alloc] initWithFrame:self.bounds];
         _coverView.translatesAutoresizingMaskIntoConstraints = NO;
@@ -114,7 +114,7 @@ static UIColor *disabledColor;
         _coverView.backgroundColor = [UIColor colorWithRed:0.24 green:0.47 blue:0.85 alpha:0.6];
         [self addSubview:_coverView];
         _coverView.hidden = YES;
-        
+
         _selectedButton = [UIButton buttonWithType:UIButtonTypeCustom];
         _selectedButton.frame = CGRectMake(2*self.bounds.size.width/3, 0*self.bounds.size.width/3, self.bounds.size.width/3, self.bounds.size.width/3);
         _selectedButton.contentMode = UIViewContentModeTopRight;
@@ -122,54 +122,15 @@ static UIColor *disabledColor;
         [_selectedButton setImage:nil forState:UIControlStateNormal];
         _selectedButton.translatesAutoresizingMaskIntoConstraints = NO;
         _selectedButton.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-        [_selectedButton setImage:[UIImage imageNamed:@"GMSelected"] forState:UIControlStateSelected];
+        [_selectedButton setImage:[UIImage imageNamed:@"GMSelected" inBundle:[NSBundle bundleForClass:GMGridViewCell.class] compatibleWithTraitCollection:nil] forState:UIControlStateSelected];
+        //[_selectedButton setImage:[UIImage imageNamed:@"GMSelected"] forState:UIControlStateSelected];
         _selectedButton.hidden = NO;
         _selectedButton.userInteractionEnabled = NO;
         [self addSubview:_selectedButton];
-        
-        // circle progress
-        
-        self.circularProgressView = [[MRCircularProgressView alloc] initWithFrame:CGRectMake(self.bounds.size.width/3, self.bounds.size.height/3, self.bounds.size.width/3, self.bounds.size.height/3)];
-        [self.circularProgressView.stopButton addTarget:self action:@selector(onCircularProgressViewTouchUpInside:) forControlEvents:UIControlEventTouchUpInside];
-        //[self.circularProgressView setHidden:true];
-        [self addSubview:self.circularProgressView];
-        
-        
-        _fetch = [UILabel new];
-        _fetch.font = titleFont;
-        _fetch.textColor = titleColor;
-        _fetch.textAlignment = NSTextAlignmentCenter;
-        _fetch.frame = CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height);
-        _fetch.text = @""; // removed 'fetching'
-        [self addSubview:_fetch];
-        
+
     }
-    
+
     return self;
-}
-
--(void)show_progress{
-    [self.circularProgressView setHidden:false];
-}
-
--(void)hide_progress{
-    [self.circularProgressView setHidden:true];
-}
-
--(void)set_progress:(float)value animated:(BOOL)animated{
-    [self.circularProgressView setProgress:value animated:animated];
-}
-
--(void)show_fetching{
-    _fetch.hidden = false;
-}
-
--(void)hide_fetching{
-    _fetch.hidden = true;
-}
-
-- (void)onCircularProgressViewTouchUpInside:(id)sender {
-    self.circularProgressView.progress = 0;
 }
 
 //Required to resize the CAGradientLayer because it does not support auto resizing.
@@ -181,7 +142,7 @@ static UIColor *disabledColor;
 - (void)bind:(PHAsset *)asset
 {
     self.asset  = asset;
-    
+
     if (self.asset.mediaType == PHAssetMediaTypeVideo)
     {
         _videoIcon.hidden = NO;

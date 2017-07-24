@@ -9,8 +9,6 @@
 
 #import <Photos/Photos.h>
 
-#import "GMFetchItem.h"
-
 //This is the default image picker size!
 //static CGSize const kPopoverContentSize = {320, 480};
 //However, the iPad is 1024x768 so it can allow popups up to 768!
@@ -25,7 +23,6 @@ static CGSize const kPopoverContentSize = {480, 720};
  */
 @interface GMImagePickerController : UIViewController
 
-- (id)init:(bool)allow_v;
 
 /**
  *  The assets picker’s delegate object.
@@ -38,21 +35,36 @@ static CGSize const kPopoverContentSize = {480, 720};
  *  You can add assets before presenting the picker to show the user some preselected assets.
  */
 @property (nonatomic, strong) NSMutableArray *selectedAssets;
-@property (nonatomic, strong) NSMutableArray *selectedFetches;
 
-
-/** UI Customizations **/
 
 /**
- *  Determines whether or not the number of assets is shown in the Album list.
- *  The number of assets is visible by default.
+ *  Determines which smart collections are displayed (int array of enum: PHAssetCollectionSubtypeSmartAlbum)
+ *  The default smart collections are:
+ *  - Favorites
+ *  - RecentlyAdded
+ *  - Videos
+ *  - SlomoVideos
+ *  - Timelapses
+ *  - Bursts
+ *  - Panoramas
  */
 @property (nonatomic, strong) NSArray* customSmartCollections;
+
+
+/**
+ *  Determines which media types are allowed (int array of enum: PHAssetMediaType)
+ *  This defaults to all media types (view, audio and images)
+ *  This can override customSmartCollections behavior (ie, remove video-only smart collections)
+ */
+@property (nonatomic, strong) NSArray* mediaTypes;
+
 
 /**
  *  If set, it displays a promt in the navigation bar
  */
 @property (nonatomic) NSString* customNavigationBarPrompt;
+
+@property (nonatomic) NSInteger maxNumOfAllowedSelectedImages;
 
 /**
  *  Determines whether or not a toolbar with info about user selection is shown.
@@ -65,6 +77,12 @@ static CGSize const kPopoverContentSize = {480, 720};
  *  The number of assets is visible by default.
  */
 @property (nonatomic, assign) BOOL displayAlbumsNumberOfAssets;
+
+
+/**
+ *  Automatically disables the "Done" button if nothing is selected
+ */
+@property (nonatomic, assign) BOOL autoDisableDoneButton;
 
 
 @property (nonatomic, assign) BOOL allow_video;
@@ -83,14 +101,13 @@ static CGSize const kPopoverContentSize = {480, 720};
 
 @property (nonatomic, strong) UINavigationController *navigationController;
 
+- (void)updateToolbar;
+
 /**
  *  Managing Asset Selection
  */
 - (void)selectAsset:(PHAsset *)asset;
 - (void)deselectAsset:(PHAsset *)asset;
-
-- (void)selectFetchItem:(GMFetchItem *)asset;
-- (void)deselectFetchItem:(GMFetchItem *)asset;
 
 
 /**
@@ -231,8 +248,6 @@ static CGSize const kPopoverContentSize = {480, 720};
  *
  */
 - (void)assetsPickerController:(GMImagePickerController *)picker didUnhighlightAsset:(PHAsset *)asset;
-
-
 
 
 @end

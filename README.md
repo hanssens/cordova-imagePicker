@@ -3,14 +3,18 @@ cordova-imagePicker
 
 Cordova Plugin For Multiple Image Selection - implemented for iOS and Android 4.0 and above.
 
+This fork has the following merged into master:
+* https://github.com/wymsee/cordova-imagePicker/pull/34 - changes album selection appearance
+* https://github.com/wymsee/cordova-imagePicker/pull/65 - adds output Type option for Base64 Encoded Strings
+
 ## Installing the plugin
 
 The plugin conforms to the Cordova plugin specification, it can be installed
 using the Cordova / Phonegap command line interface.
 
-    phonegap plugin add https://github.com/wymsee/cordova-imagePicker.git
+    phonegap plugin add https://github.com/rabeyta/cordova-imagePicker.git
 
-    cordova plugin add https://github.com/wymsee/cordova-imagePicker.git
+    cordova plugin add https://github.com/rabeyta/cordova-imagePicker.git
 
 
 ## Using the plugin
@@ -73,7 +77,7 @@ window.imagePicker.getPictures(
     
 ### Note for Android Use
 
-When outputType is FILE_URI the plugin returns images that are stored in a temporary directory.  These images will often not be deleted automatically though.  The files should be moved or deleted after you get their filepaths in javascript. If Base64 Strings are being returned, there is nothing to clean up.
+When outputType is FILE_URI the plugin returns images that are stored in a temporary directory.  These images will often not be deleted automatically though.  The files should be moved or deleted after you get their filepaths in javascript.
 
 ## Libraries used
 

@@ -22,19 +22,19 @@
 
 - (id)initWithStyle:(UITableViewCellStyle)style reuseIdentifier:(NSString *)reuseIdentifier
 {
-    
+
     if (self = [super initWithStyle:style reuseIdentifier:reuseIdentifier])
     {
         //self.opaque                             = YES;
         //self.isAccessibilityElement             = YES;
         //self.textLabel.backgroundColor          = self.backgroundColor;
         //self.detailTextLabel.backgroundColor    = self.backgroundColor;
-        
+
         self.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
-        
+
         //Border width of 1 pixel:
         float borderWidth = 1.0/[UIScreen mainScreen].scale;
-        
+
         //ImageView
         _imageView3 = [UIImageView new];
         _imageView3.contentMode = UIViewContentModeScaleAspectFill;
@@ -45,7 +45,7 @@
         _imageView3.translatesAutoresizingMaskIntoConstraints = YES;
         _imageView3.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
         [self.contentView addSubview:_imageView3];
-        
+
         //ImageView
         _imageView2 = [UIImageView new];
         _imageView2.contentMode = UIViewContentModeScaleAspectFill;
@@ -56,7 +56,7 @@
         _imageView2.translatesAutoresizingMaskIntoConstraints = YES;
         _imageView2.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
         [self.contentView addSubview:_imageView2];
-        
+
         //ImageView
         _imageView1 = [UIImageView new];
         _imageView1.contentMode = UIViewContentModeScaleAspectFill;
@@ -67,8 +67,8 @@
         _imageView1.translatesAutoresizingMaskIntoConstraints = YES;
         _imageView1.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
         [self.contentView addSubview:_imageView1];
-        
-        
+
+
         // The video gradient, label & icon
         UIColor *topGradient = [UIColor colorWithRed:0.00 green:0.00 blue:0.00 alpha:0.0];
         UIColor *midGradient = [UIColor colorWithRed:0.00 green:0.00 blue:0.00 alpha:0.33];
@@ -83,49 +83,50 @@
         _gradientView.translatesAutoresizingMaskIntoConstraints = YES;
         [self.imageView1 addSubview:_gradientView];
         _gradientView.hidden = YES;
-        
+
         //VideoIcon
         _videoIcon = [UIImageView new];
         _videoIcon.contentMode = UIViewContentModeScaleAspectFill;
         _videoIcon.frame = CGRectMake(3,kAlbumThumbnailSize1.height - 4 - 8, 15, 8 );
-        _videoIcon.image = [UIImage imageNamed:@"GMVideoIcon"];
+        //_videoIcon.image = [UIImage imageNamed:@"GMVideoIcon"];
+        _videoIcon.image = [UIImage imageNamed:@"GMVideoIcon" inBundle:[NSBundle bundleForClass:GMAlbumsViewCell.class] compatibleWithTraitCollection:nil];
         _videoIcon.clipsToBounds = YES;
         _videoIcon.translatesAutoresizingMaskIntoConstraints = YES;
         _videoIcon.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
         [self.imageView1 addSubview:_videoIcon];
         _videoIcon.hidden = NO;
 
-        
+
         //TextLabel
         self.textLabel.font = [UIFont fontWithName:@"Helvetica" size:17.0];
         self.textLabel.numberOfLines = 1;
         self.textLabel.translatesAutoresizingMaskIntoConstraints = NO;
-        
+
         self.detailTextLabel.font = [UIFont fontWithName:@"Helvetica" size:14.0];
         self.detailTextLabel.numberOfLines = 1;
         self.detailTextLabel.translatesAutoresizingMaskIntoConstraints = NO;
-        
+
         //Set next text labels contraints :
         [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[imageView1]-(offset)-[textLabel]-|"
                                                                                  options:0
                                                                                  metrics:@{@"offset": @(kAlbumImageToTextSpace)}
                                                                                    views:@{@"textLabel": self.textLabel,
                                                                                            @"imageView1": self.imageView1}]];
-        
+
         [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[imageView1]-(offset)-[detailTextLabel]-|"
                                                                                  options:0
                                                                                  metrics:@{@"offset": @(kAlbumImageToTextSpace)}
                                                                                    views:@{@"detailTextLabel": self.detailTextLabel,
                                                                                            @"imageView1": self.imageView1}]];
-        
-        
+
+
         [self.contentView addConstraints:@[[NSLayoutConstraint constraintWithItem:self.textLabel
                                                                         attribute:NSLayoutAttributeBottom
                                                                         relatedBy:NSLayoutRelationEqual
                                                                            toItem:self.textLabel.superview
                                                                         attribute:NSLayoutAttributeCenterY
                                                                        multiplier:1.f constant:0.f]]];
-        
+
         [self.contentView addConstraints:@[[NSLayoutConstraint constraintWithItem:self.detailTextLabel
                                                                         attribute:NSLayoutAttributeTop
                                                                         relatedBy:NSLayoutRelationEqual
@@ -133,18 +134,14 @@
                                                                         attribute:NSLayoutAttributeCenterY
                                                                        multiplier:1.f constant:+4.f]]];
     }
-    
-    
-    
+
     return self;
 }
 
-- (void)layoutSubviews
-{
+- (void)layoutSubviews {
     [super layoutSubviews];
-    
-    //TODO Reduce text font size if the name label does not fit screen.
 
+    //TODO Reduce text font size if the name label does not fit screen.
 }
 
 - (void)setVideoLayout:(BOOL)isVideo

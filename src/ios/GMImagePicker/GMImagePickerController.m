@@ -16,68 +16,73 @@
 
 @implementation GMImagePickerController
 
-- (id)init:(bool)allow_v
-{
-    if (self = [super init])
-    {
-        _allow_video = allow_v;
-        
+- (id)init {
+    if (self = [super init]) {
+
+        _maxNumOfAllowedSelectedImages = 15; // default
+
         _selectedAssets = [[NSMutableArray alloc] init];
-        _selectedFetches = [[NSMutableArray alloc] init];
-        
+
         //Default values:
         _displaySelectionInfoToolbar = YES;
         _displayAlbumsNumberOfAssets = YES;
-        
+        _autoDisableDoneButton = YES;
+
         //Grid configuration:
         _colsInPortrait = 3;
         _colsInLandscape = 5;
         _minimumInteritemSpacing = 2.0;
-        
+
         //Sample of how to select the collections you want to display:
-        _customSmartCollections = @[@(PHAssetCollectionSubtypeSmartAlbumFavorites),
+        _customSmartCollections = @[
+                                    @(PHAssetCollectionSubtypeSmartAlbumFavorites),
                                     @(PHAssetCollectionSubtypeSmartAlbumRecentlyAdded),
-                                    @(PHAssetCollectionSubtypeSmartAlbumVideos),
-                                    @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
-                                    @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumVideos),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumSlomoVideos),
+//                                    @(PHAssetCollectionSubtypeSmartAlbumTimelapses),
                                     @(PHAssetCollectionSubtypeSmartAlbumBursts),
-                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)];
+                                    @(PHAssetCollectionSubtypeSmartAlbumPanoramas)
+                                    ];
+
         //If you don't want to show smart collections, just put _customSmartCollections to nil;
         //_customSmartCollections=nil;
-        
+
+        //Which media types will display
+        _mediaTypes = @[
+//                        @(PHAssetMediaTypeAudio),
+//                        @(PHAssetMediaTypeVideo),
+                        @(PHAssetMediaTypeImage)
+                        ];
+
         self.preferredContentSize = kPopoverContentSize;
-        
+
         [self setupNavigationController];
     }
     return self;
 }
 
-- (void)dealloc
-{
-    
+- (void)dealloc {
+
 }
 
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
 }
 
-- (void)didReceiveMemoryWarning
-{
+- (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
 
 #pragma mark - Setup Navigation Controller
 
-- (void)setupNavigationController
-{
-    GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init:_allow_video];
+- (void)setupNavigationController {
+    GMAlbumsViewController *albumsViewController = [[GMAlbumsViewController alloc] init];
     _navigationController = [[UINavigationController alloc] initWithRootViewController:albumsViewController];
     _navigationController.delegate = self;
-    
+
     [_navigationController willMoveToParentViewController:self];
     [_navigationController.view setFrame:self.view.frame];
     [self.view addSubview:_navigationController.view];
@@ -87,42 +92,39 @@
 
 #pragma mark - Select / Deselect Asset
 
-- (void)selectAsset:(PHAsset *)asset
-{
+- (void)selectAsset:(PHAsset *)asset {
     [self.selectedAssets insertObject:asset atIndex:self.selectedAssets.count];
+
+    if (self.maxNumOfAllowedSelectedImages == 1) {
+      // do not really need Done button and a toolbar for single image picker
+      return;
+    }
+
     [self updateDoneButton];
-    
-    if(self.displaySelectionInfoToolbar)
-        [self updateToolbar];
+
+    if(self.displaySelectionInfoToolbar) {
+      [self updateToolbar];
+    }
 }
 
-- (void)deselectAsset:(PHAsset *)asset
-{
+- (void)deselectAsset:(PHAsset *)asset {
     [self.selectedAssets removeObjectAtIndex:[self.selectedAssets indexOfObject:asset]];
-    if(self.selectedAssets.count == 0)
-        [self updateDoneButton];
-    
-    if(self.displaySelectionInfoToolbar)
-        [self updateToolbar];
+    if(self.selectedAssets.count == 0) {
+      [self updateDoneButton];
+    }
+
+    if (self.displaySelectionInfoToolbar) {
+      [self updateToolbar];
+    }
 }
 
-- (void)selectFetchItem:(GMFetchItem *)fetch_item{
-    [self.selectedFetches insertObject:fetch_item atIndex:self.selectedFetches.count];
-}
-
-- (void)deselectFetchItem:(GMFetchItem *)fetch_item{
-    [self.selectedFetches removeObjectAtIndex:[self.selectedFetches indexOfObject:fetch_item]];
-}
-
-- (void)updateDoneButton
-{
+- (void)updateDoneButton {
     UINavigationController *nav = (UINavigationController *)self.childViewControllers[0];
     for (UIViewController *viewController in nav.viewControllers)
-        viewController.navigationItem.rightBarButtonItem.enabled = (self.selectedAssets.count > 0);
+        viewController.navigationItem.rightBarButtonItem.enabled = (self.autoDisableDoneButton ? self.selectedAssets.count > 0 : TRUE);
 }
 
-- (void)updateToolbar
-{
+- (void)updateToolbar {
     UINavigationController *nav = (UINavigationController *)self.childViewControllers[0];
     for (UIViewController *viewController in nav.viewControllers)
     {
@@ -133,64 +135,130 @@
 
 #pragma mark - User finish Actions
 
-- (void)dismiss:(id)sender
-{
+- (void)dismiss:(id)sender {
+
+  if ( [self.selectedAssets count] ) {
+
+    // alert user when they want to cancel while they have some photos selected
+
+    UIAlertController * alert = [UIAlertController
+        alertControllerWithTitle:@"Warning"
+                         message:@"Navigating back will reset all your previously selected photos. Would you like to continue?"
+                  preferredStyle:UIAlertControllerStyleAlert];
+
+    UIAlertAction* ok = [UIAlertAction
+        actionWithTitle:@"Yes"
+                  style:UIAlertActionStyleDefault
+                handler:^(UIAlertAction * action)
+                {
+                    if ([self.delegate respondsToSelector:@selector(assetsPickerControllerDidCancel:)])
+                      [self.delegate assetsPickerControllerDidCancel:self];
+
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+
+    UIAlertAction* cancel = [UIAlertAction
+        actionWithTitle:@"No"
+                  style:UIAlertActionStyleDefault
+                handler:^(UIAlertAction * action)
+                {
+                    // do nothing
+                    [alert dismissViewControllerAnimated:YES completion:nil];
+                }];
+
+    [alert addAction:cancel];
+    [alert addAction:ok];
+
+    [self presentViewController:alert animated:YES completion:nil];
+
+  } else {
+
     if ([self.delegate respondsToSelector:@selector(assetsPickerControllerDidCancel:)])
         [self.delegate assetsPickerControllerDidCancel:self];
-    
+
     [self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+  }
+
 }
 
 
-- (void)finishPickingAssets:(id)sender
-{
-    if ([self.delegate respondsToSelector:@selector(assetsPickerController:didFinishPickingAssets:)])
-        //[self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedAssets];
-        [self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedFetches];
-    
-    //[self.presentingViewController dismissViewControllerAnimated:YES completion:nil];
+- (void)finishPickingAssets:(id)sender {
+    if ([self.delegate respondsToSelector:@selector(assetsPickerController:didFinishPickingAssets:)]) {
+      [self.delegate assetsPickerController:self didFinishPickingAssets:self.selectedAssets];
+    }
 }
 
 
 #pragma mark - Toolbar Title
 
-- (NSPredicate *)predicateOfAssetType:(PHAssetMediaType)type
-{
+- (NSPredicate *)predicateOfAssetType:(PHAssetMediaType)type {
     return [NSPredicate predicateWithBlock:^BOOL(PHAsset *asset, NSDictionary *bindings) {
         return (asset.mediaType==type);
     }];
 }
 
-- (NSString *)toolbarTitle
-{
+- (NSString *)toolbarTitle {
     if (self.selectedAssets.count == 0)
         return nil;
-    
+
     NSPredicate *photoPredicate = [self predicateOfAssetType:PHAssetMediaTypeImage];
     NSPredicate *videoPredicate = [self predicateOfAssetType:PHAssetMediaTypeVideo];
-    
+
     NSInteger nImages = [self.selectedAssets filteredArrayUsingPredicate:photoPredicate].count;
     NSInteger nVideos = [self.selectedAssets filteredArrayUsingPredicate:videoPredicate].count;
-    
+
+    if (self.maxNumOfAllowedSelectedImages) {
+
+      // showing #/# items selected
+
+      if (nImages > 0 && nVideos > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-items",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/%@ Items Selected" ),
+                @(nImages+nVideos), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else if (nImages > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-photos",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/%@ Photos Selected"),
+                @(nImages), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else if (nVideos > 0) {
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(
+                                              @"picker.selection.multiple-videos",
+                                              @"GMImagePicker",
+                                              [NSBundle bundleForClass:GMImagePickerController.class],
+                                              @"%@/%@ Videos Selected"),
+                @(nVideos), @(self.maxNumOfAllowedSelectedImages)];
+
+      } else {
+        return nil;
+      }
+    }
+
     if (nImages>0 && nVideos>0)
     {
-        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-items", @"GMImagePicker", @"%@ Items Selected" ), @(nImages+nVideos)];
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-items",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Items Selected" ), @(nImages+nVideos)];
     }
     else if (nImages>1)
     {
-        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-photos", @"GMImagePicker", @"%@ Photos Selected"), @(nImages)];
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-photos",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Photos Selected"), @(nImages)];
     }
     else if (nImages==1)
     {
-        return NSLocalizedStringFromTable(@"picker.selection.single-photo", @"GMImagePicker", @"1 Photo Selected" );
+        return NSLocalizedStringFromTableInBundle(@"picker.selection.single-photo",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"1 Photo Selected" );
     }
     else if (nVideos>1)
     {
-        return [NSString stringWithFormat:NSLocalizedStringFromTable(@"picker.selection.multiple-videos", @"GMImagePicker", @"%@ Videos Selected"), @(nVideos)];
+        return [NSString stringWithFormat:NSLocalizedStringFromTableInBundle(@"picker.selection.multiple-videos",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"%@ Videos Selected"), @(nVideos)];
     }
     else if (nVideos==1)
     {
-        return NSLocalizedStringFromTable(@"picker.selection.single-video", @"GMImagePicker", @"1 Video Selected");
+        return NSLocalizedStringFromTableInBundle(@"picker.selection.single-video",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class],  @"1 Video Selected");
     }
     else
     {
@@ -201,36 +269,31 @@
 
 #pragma mark - Toolbar Items
 
-- (UIBarButtonItem *)titleButtonItem
-{
+- (UIBarButtonItem *)titleButtonItem {
     UIBarButtonItem *title =
     [[UIBarButtonItem alloc] initWithTitle:self.toolbarTitle
                                      style:UIBarButtonItemStylePlain
                                     target:nil
                                     action:nil];
-    
+
     NSDictionary *attributes = @{NSForegroundColorAttributeName : [UIColor blackColor]};
-    
+
     [title setTitleTextAttributes:attributes forState:UIControlStateNormal];
     [title setTitleTextAttributes:attributes forState:UIControlStateDisabled];
     [title setEnabled:NO];
-    
+
     return title;
 }
 
-- (UIBarButtonItem *)spaceButtonItem
-{
+- (UIBarButtonItem *)spaceButtonItem {
     return [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 }
 
-- (NSArray *)toolbarItems
-{
+- (NSArray *)toolbarItems {
     UIBarButtonItem *title = [self titleButtonItem];
     UIBarButtonItem *space = [self spaceButtonItem];
-    
+
     return @[space, title, space];
 }
-
-
 
 @end

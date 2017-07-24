@@ -28,46 +28,36 @@
 @property (strong) NSArray *collectionsFetchResultsTitles;
 @property (nonatomic, weak) GMImagePickerController *picker;
 @property (strong) PHCachingImageManager *imageManager;
-@property (nonatomic, strong) NSMutableDictionary * dic_asset_fetches;
 
 @end
 
 
-@implementation GMAlbumsViewController{
-    bool allow_video;
+@implementation GMAlbumsViewController {
 }
 
-@synthesize dic_asset_fetches;
 
-- (id)init:(bool)allow_v
-{
-    if (self = [super initWithStyle:UITableViewStylePlain])
-    {
+- (id)init {
+    if (self = [super initWithStyle:UITableViewStylePlain]) {
         self.preferredContentSize = kPopoverContentSize;
     }
-    
-    dic_asset_fetches = [[NSMutableDictionary alloc] init];
-    
-    allow_video = allow_v;
-    
+
     return self;
 }
 
 static NSString * const AllPhotosReuseIdentifier = @"AllPhotosCell";
 static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 
-- (void)viewDidLoad
-{
+- (void)viewDidLoad {
     [super viewDidLoad];
-    
+
     //Navigation bar customization_
     if(self.picker.customNavigationBarPrompt)
     {
         self.navigationItem.prompt = self.picker.customNavigationBarPrompt;
     }
-    
+
     self.imageManager = [[PHCachingImageManager alloc] init];
-    
+
     //Table view aspect
     self.tableView.rowHeight = kAlbumRowHeight;
     self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
@@ -76,96 +66,94 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
     //if (self.picker.showsCancelButton)
     {
         self.navigationItem.leftBarButtonItem =
-        [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTable(@"picker.navigation.cancel-button", @"GMImagePicker",@"Cancel")
+        [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTableInBundle(@"picker.navigation.cancel-button",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"Cancel")
                                          style:UIBarButtonItemStylePlain
                                         target:self.picker
                                         action:@selector(dismiss:)];
     }
-    
-    self.navigationItem.rightBarButtonItem =
-    [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTable(@"picker.navigation.done-button", @"GMImagePicker",@"Done")
+
+    // only need to shown 'Done' button when user is allowed to select multiple images
+    if (self.picker.maxNumOfAllowedSelectedImages > 1) {
+        self.navigationItem.rightBarButtonItem =
+        [[UIBarButtonItem alloc] initWithTitle:NSLocalizedStringFromTableInBundle(@"picker.navigation.done-button",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"Done")
                                      style:UIBarButtonItemStyleDone
                                     target:self.picker
                                     action:@selector(finishPickingAssets:)];
-    
-    self.navigationItem.rightBarButtonItem.enabled = (self.picker.selectedAssets.count > 0);
-    
+
+       self.navigationItem.rightBarButtonItem.enabled = (self.picker.autoDisableDoneButton ? self.picker.selectedAssets.count > 0 : TRUE);
+    }
+
     //Bottom toolbar
     self.toolbarItems = self.picker.toolbarItems;
-    
+
     //Title
     if (!self.picker.title)
-        self.title = NSLocalizedStringFromTable(@"picker.navigation.title", @"GMImagePicker",@"Navigation bar default title");
+        self.title = NSLocalizedStringFromTableInBundle(@"picker.navigation.title",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"Navigation bar default title");
     else
         self.title = self.picker.title;
-    
+
 
     // TO-DO Customizable predicates:
     // Predicate has to filter properties of the type of object returned by the PHFetchResult:
     // PHCollectionList, PHAssetCollection and PHAsset require different predicates
     // with limited posibilities (cannot filter a collection by mediaType for example)
-    
+
     //NSPredicate *predicatePHCollectionList = [NSPredicate predicateWithFormat:@"(mediaType == %d)", PHAssetMediaTypeImage];
     //NSPredicate *predicatePHAssetCollection = [NSPredicate predicateWithFormat:@"(mediaType == %d)", PHAssetMediaTypeImage];
     //NSPredicate *predicatePHAsset = [NSPredicate predicateWithFormat:@"(mediaType == %d)", PHAssetMediaTypeImage];
-    
+
     PHFetchOptions * options = [[PHFetchOptions alloc] init];
     //NSPredicate *predicatePHAssetCollection = [NSPredicate predicateWithFormat:@"(mediaType == %d)", PHAssetMediaTypeImage];
-    
+
     //options.predicate = predicatePHAssetCollection;
     options.sortDescriptors = @[
                                 //[NSSortDescriptor sortDescriptorWithKey:@"localizedTitle" ascending:YES],
                                 [ NSSortDescriptor sortDescriptorWithKey:@"title" ascending:YES selector:@selector(localizedCaseInsensitiveCompare:)],
                                 ];
-    
+
     //Fetch PHAssetCollections:
     PHFetchResult *topLevelUserCollections = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeAlbum subtype:PHAssetCollectionSubtypeAny options:options];
-    //PHFetchResult *topLevelUserCollections = [PHCollectionList fetchTopLevelUserCollectionsWithOptions:nil];
-    //PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAlbumRegular options:nil];
     PHFetchResult *smartAlbums = [PHAssetCollection fetchAssetCollectionsWithType:PHAssetCollectionTypeSmartAlbum subtype:PHAssetCollectionSubtypeAny options:nil];
+
     self.collectionsFetchResults = @[topLevelUserCollections, smartAlbums];
-    self.collectionsLocalizedTitles = @[NSLocalizedStringFromTable(@"picker.table.user-albums-header", @"GMImagePicker",@"Albums"), NSLocalizedStringFromTable(@"picker.table.smart-albums-header", @"GMImagePicker",@"Smart Albums")];
-    
+    self.collectionsLocalizedTitles = @[NSLocalizedStringFromTableInBundle(@"picker.table.user-albums-header",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"Albums"), NSLocalizedStringFromTableInBundle(@"picker.table.smart-albums-header",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"Smart Albums")];
     [self updateFetchResults];
-    
+
     //Register for changes
     [[PHPhotoLibrary sharedPhotoLibrary] registerChangeObserver:self];
 }
 
-- (void)dealloc
-{
+- (void)dealloc {
     [[PHPhotoLibrary sharedPhotoLibrary] unregisterChangeObserver:self];
 }
 
--(void)updateFetchResults
-{
+-(void)updateFetchResults {
     //What I do here is fetch both the albums list and the assets of each album.
     //This way I have acces to the number of items in each album, I can load the 3
     //thumbnails directly and I can pass the fetched result to the gridViewController.
-    
-    NSPredicate * predicatePHAsset = allow_video? nil : [NSPredicate predicateWithFormat:@"mediaType == %d", PHAssetMediaTypeImage];
-    
+
+    NSPredicate *predicatePHAsset = [NSPredicate predicateWithFormat:@"mediaType in %@", self.picker.mediaTypes];
     PHFetchOptions *options = [[PHFetchOptions alloc] init];
     options.sortDescriptors = @[[NSSortDescriptor sortDescriptorWithKey:@"creationDate" ascending:NO]];
     options.predicate = predicatePHAsset;
-    
+
     self.collectionsFetchResultsAssets=nil;
     self.collectionsFetchResultsTitles=nil;
-    
+
     //Fetch PHAssetCollections:
     PHFetchResult *topLevelUserCollections = [self.collectionsFetchResults objectAtIndex:0];
     PHFetchResult *smartAlbums = [self.collectionsFetchResults objectAtIndex:1];
-    
+
     //All album: Sorted by descending creation date.
     NSMutableArray *allFetchResultArray = [[NSMutableArray alloc] init];
     NSMutableArray *allFetchResultLabel = [[NSMutableArray alloc] init];
     {
-        
+
         PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsWithOptions:options];
         [allFetchResultArray addObject:assetsFetchResult];
-        [allFetchResultLabel addObject:NSLocalizedStringFromTable(@"picker.table.all-photos-label", @"GMImagePicker",@"All photos")];
+        [allFetchResultLabel addObject:NSLocalizedStringFromTableInBundle(@"picker.table.all-photos-label",  @"GMImagePicker", [NSBundle bundleForClass:GMImagePickerController.class], @"All photos")];
     }
-    
+
     //User albums:
     NSMutableArray *userFetchResultArray = [[NSMutableArray alloc] init];
     NSMutableArray *userFetchResultLabel = [[NSMutableArray alloc] init];
@@ -176,16 +164,16 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
             //PHFetchOptions *options = [[PHFetchOptions alloc] init];
             //options.predicate = predicatePHAsset;
             PHAssetCollection *assetCollection = (PHAssetCollection *)collection;
-            
-            //Albums collections are allways PHAssetCollectionType=1 & PHAssetCollectionSubtype=2
-            
+
+            //Albums collections are always PHAssetCollectionType=1 & PHAssetCollectionSubtype=2
+
             PHFetchResult *assetsFetchResult = [PHAsset fetchAssetsInAssetCollection:assetCollection options:options];
             [userFetchResultArray addObject:assetsFetchResult];
             [userFetchResultLabel addObject:collection.localizedTitle];
         }
     }
-    
-                                  
+
+
     //Smart albums: Sorted by descending creation date.
     NSMutableArray *smartFetchResultArray = [[NSMutableArray alloc] init];
     NSMutableArray *smartFetchResultLabel = [[NSMutableArray alloc] init];
@@ -194,7 +182,7 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
         if ([collection isKindOfClass:[PHAssetCollection class]])
         {
             PHAssetCollection *assetCollection = (PHAssetCollection *)collection;
-            
+
             //Smart collections are PHAssetCollectionType=2;
             if(self.picker.customSmartCollections && [self.picker.customSmartCollections containsObject:@(assetCollection.assetCollectionSubtype)])
             {
@@ -210,10 +198,12 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
             }
         }
     }
-    
+
     self.collectionsFetchResultsAssets= @[allFetchResultArray,userFetchResultArray,smartFetchResultArray];
     self.collectionsFetchResultsTitles= @[allFetchResultLabel,userFetchResultLabel,smartFetchResultLabel];
 }
+
+
 #pragma mark - Accessors
 
 - (GMImagePickerController *)picker
@@ -224,20 +214,17 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 
 #pragma mark - Rotation
 
-- (BOOL)shouldAutorotate
-{
+- (BOOL)shouldAutorotate {
     return YES;
 }
 
-- (NSUInteger)supportedInterfaceOrientations
-{
+- (NSUInteger)supportedInterfaceOrientations {
     return UIInterfaceOrientationMaskAllButUpsideDown;
 }
 
 #pragma mark - UITableViewDataSource
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
-{
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
     return self.collectionsFetchResultsAssets.count;
 }
 
@@ -247,37 +234,36 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
     return fetchResult.count;
 }
 
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
-{
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
     static NSString *CellIdentifier = @"Cell";
-    
+
     GMAlbumsViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
     if (cell == nil) {
         cell = [[GMAlbumsViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier];
         cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
     }
-    
+
     // Increment the cell's tag
     NSInteger currentTag = cell.tag + 1;
     cell.tag = currentTag;
 
     //Set the label
     cell.textLabel.text = (self.collectionsFetchResultsTitles[indexPath.section])[indexPath.row];
-    
+
     //Retrieve the pre-fetched assets for this album:
     PHFetchResult *assetsFetchResult = (self.collectionsFetchResultsAssets[indexPath.section])[indexPath.row];
-    
+
     //Display the number of assets
     if(self.picker.displayAlbumsNumberOfAssets)
     {
         cell.detailTextLabel.text = [self tableCellSubtitle:assetsFetchResult];
     }
-    
+
     //Set the 3 images (if exists):
     if([assetsFetchResult count]>0)
     {
         CGFloat scale = [UIScreen mainScreen].scale;
-        
+
         //Compute the thumbnail pixel size:
         CGSize tableCellThumbnailSize1 = CGSizeMake(kAlbumThumbnailSize1.width*scale, kAlbumThumbnailSize1.height*scale);
         PHAsset *asset = assetsFetchResult[0];
@@ -293,7 +279,7 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
                  cell.imageView1.image = result;
              }
          }];
-        
+
         //Second & third images:
         // TO DO: Only preload the 3pixels height visible frame!
         if([assetsFetchResult count]>1)
@@ -345,7 +331,7 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
         cell.imageView2.image = [UIImage imageNamed:@"EmptyFolder"];
         cell.imageView1.image = [UIImage imageNamed:@"EmptyFolder"];
     }
-    
+
     return cell;
 }
 
@@ -354,15 +340,14 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-    
+
     //Init the GMGridViewController
     GMGridViewController *gridViewController = [[GMGridViewController alloc] initWithPicker:[self picker]];
     //Set the title
     gridViewController.title = cell.textLabel.text;
     //Use the prefetched assets!
     gridViewController.assetsFetchResults = [[_collectionsFetchResultsAssets objectAtIndex:indexPath.section] objectAtIndex:indexPath.row];
-    gridViewController.dic_asset_fetches = dic_asset_fetches;
-    
+
     //Push GMGridViewController
     [self.navigationController pushViewController:gridViewController animated:YES];
 }
@@ -372,17 +357,16 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 -(void)tableView:(UITableView *)tableView willDisplayHeaderView:(UIView *)view forSection:(NSInteger)section
 {
     UITableViewHeaderFooterView *header = (UITableViewHeaderFooterView *)view;
-    
+
     //Here you can customize header views!
     header.textLabel.font = [UIFont systemFontOfSize:14.0f]; //Set font to "normal" style (default is bold) and to 14 pts.
-    //header.textLabel.font = [UIFont boldSystemFontOfSize:14.0f];
-    //header.textLabel.textColor = [UIColor orangeColor];
+//    header.textLabel.font = [UIFont boldSystemFontOfSize:14.0f];
+//    header.textLabel.textColor = [UIColor colorWithRed:0.933 green:0.318 blue:0.263 alpha:1]; /*#ee5143*/
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
-{
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
     //Tip: Returning nil hides the section header!
-    
+
     NSString *title = nil;
     if (section > 0)
     {
@@ -399,34 +383,34 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 
 #pragma mark - PHPhotoLibraryChangeObserver
 
-- (void)photoLibraryDidChange:(PHChange *)changeInstance
-{
+- (void)photoLibraryDidChange:(PHChange *)changeInstance {
     // Call might come on any background queue. Re-dispatch to the main queue to handle it.
     dispatch_async(dispatch_get_main_queue(), ^{
-        
+
         NSMutableArray *updatedCollectionsFetchResults = nil;
-        
+
         for (PHFetchResult *collectionsFetchResult in self.collectionsFetchResults) {
             PHFetchResultChangeDetails *changeDetails = [changeInstance changeDetailsForFetchResult:collectionsFetchResult];
             if (changeDetails) {
                 if (!updatedCollectionsFetchResults) {
                     updatedCollectionsFetchResults = [self.collectionsFetchResults mutableCopy];
                 }
-                [updatedCollectionsFetchResults replaceObjectAtIndex:[self.collectionsFetchResults indexOfObject:collectionsFetchResult] withObject:[changeDetails fetchResultAfterChanges]];
+                [updatedCollectionsFetchResults replaceObjectAtIndex:[self.collectionsFetchResults indexOfObject:collectionsFetchResult]
+                                                          withObject:[changeDetails fetchResultAfterChanges]];
             }
         }
-        
+
         //This only affects to changes in albums level (add/remove/edit album)
         if (updatedCollectionsFetchResults)
         {
             self.collectionsFetchResults = updatedCollectionsFetchResults;
         }
-        
+
         //However, we want to update if photos are added, so the counts of items & thumbnails are updated too.
         //Maybe some checks could be done here , but for now is OKey.
         [self updateFetchResults];
         [self.tableView reloadData];
-        
+
     });
 }
 
@@ -434,12 +418,9 @@ static NSString * const CollectionCellReuseIdentifier = @"CollectionCell";
 
 #pragma mark - Cell Subtitle
 
-- (NSString *)tableCellSubtitle:(PHFetchResult*)assetsFetchResult
-{
+- (NSString *)tableCellSubtitle:(PHFetchResult*)assetsFetchResult {
     //Just return the number of assets. Album app does this:
     return [NSString stringWithFormat:@"%ld", (long)[assetsFetchResult count]];
 }
-
-
 
 @end
